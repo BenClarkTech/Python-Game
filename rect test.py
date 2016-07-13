@@ -49,7 +49,17 @@ def moveRect_single_axis(rec,dx,dy,*args):
     #print "not Colliding"
     return True
 
+class Wall(Rect):
+    def __init__(self, *args, **kwargs):
+        super(Wall, self).__init__(*args, **kwargs)
+        walls.append(self)
+        not_player.append(self)
 
+class Env(Rect):
+    def __init__(self, *args, **kwargs):
+        super(Env, self).__init__(*args, **kwargs)
+        not_player.append(self)
+    
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -82,19 +92,19 @@ walls = []
 not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
 
 #rectangles below
-rect1 = pygame.rect.Rect((100 - camera.x,300 - camera.y),(20,20))
-rect2 = pygame.rect.Rect((xpos - camera.x,ypos - camera.y), (40,40))
-floor = Rect((0 - camera.x,0 - camera.y),(winX,winY))
-floor2 = Rect((650 - camera.x, 0 - camera.y),(winX,winY))
+rect1 = Wall((100 - camera.x,300 - camera.y),(20,20))
+rect2 = Rect((xpos - camera.x,ypos - camera.y), (40,40))
+floor = Env((0 - camera.x,0 - camera.y),(winX,winY))
+floor2 = Env((650 - camera.x, 0 - camera.y),(winX,winY))
 
 #centers camera at start
 rect2.center = camera.center#comment out to allow skewed camera
 
-#adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor
-walls.append(rect1)
-not_player.append(rect1)
-not_player.append(floor)
-not_player.append(floor2)
+#adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
+#walls.append(rect1)
+#not_player.append(rect1)
+#not_player.append(floor)
+#not_player.append(floor2)
 
 #saved code from initial movement structure
     
