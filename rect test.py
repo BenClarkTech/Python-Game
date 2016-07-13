@@ -16,26 +16,37 @@ def getBounds(rec):
 
 def moveRect(rec,dx,dy,*args):
     if dx != 0:
-        moveRect_single_axis(rec,dx,0,args)
+        ret = moveRect_single_axis(rec,dx,0,*args)
+        #print str(ret)+"({},{})".format(dx,dy)
+        return ret
     if dy != 0:
-        moveRect_single_axis(rec,0,dy,args)
+        ret = moveRect_single_axis(rec,0,dy,*args)
+        #print str(ret)+"({},{})".format(dx,dy)
+        return ret
 
 def moveRect_single_axis(rec,dx,dy,*args):
     rec.x += dx
     rec.y += dy
-
-    for arg in args[0]:
+    for arg in args:
+        #print str(args[0])+str(rec) #object debugging
         if rec.colliderect(arg):
+            #print "Collision Detected"
             if dx > 0:
                 rec.right = arg.left
+                #print "left bump"
             if dx < 0:
                 rec.left = arg.right
+                #print "right bump"
             if dy > 0:
                 rec.bottom = arg.top
+                #print "top bump"
             if dy < 0:
                 rec.top = arg.bottom
+                #print "bottom bump"
+            #print "Colliding"
+            #print "Transformed -> "+str(args[0])+str(rec) #object debugging
             return False
-
+    #print "not Colliding"
     return True
 
 
@@ -43,21 +54,22 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
-xpos = 360
-ypos = 300
-px=xpos
+xpos = 300#starting position if camera skewed
+ypos = 280
+px=xpos#archaic variables for revision
 py=ypos
 speed = 3
 
-CameraX = 0
+CameraX = 0#camera start
 CameraY = 0
-cX = CameraX
+cX = CameraX#archaic variables for revision
 cY = CameraY
 
-#camera = pygame.rect.Rect(0,0,640,600)
+winX = 640
+winY = 600
 
-window = pygame.display.set_mode([640,600])
-
+window = pygame.display.set_mode([winX,winY])
+camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene
 pygame.display.set_caption("Moving Box")
 
 pygame.display.flip()
@@ -66,12 +78,23 @@ purple = (128,0,128)
 black = (0,0,0)
 
 color = red
+walls = []
+not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
 
 #rectangles below
-rect1 = pygame.rect.Rect((100 - CameraX,300 - CameraY),(20,20))
-rect2 = pygame.rect.Rect((xpos - CameraX,ypos - CameraY), (40,40))
-floor = Rect((0 - CameraX,0 - CameraY),(640,600))
-floor2 = Rect((650 - CameraX, 0 - CameraY),(640,600))
+rect1 = pygame.rect.Rect((100 - camera.x,300 - camera.y),(20,20))
+rect2 = pygame.rect.Rect((xpos - camera.x,ypos - camera.y), (40,40))
+floor = Rect((0 - camera.x,0 - camera.y),(winX,winY))
+floor2 = Rect((650 - camera.x, 0 - camera.y),(winX,winY))
+
+#centers camera at start
+rect2.center = camera.center#comment out to allow skewed camera
+
+#adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor
+walls.append(rect1)
+not_player.append(rect1)
+not_player.append(floor)
+not_player.append(floor2)
 
 #saved code from initial movement structure
     
@@ -112,8 +135,9 @@ floor2 = Rect((650 - CameraX, 0 - CameraY),(640,600))
         floor.y = 0-CameraY """
     
 #possibly create a velocity pair which is edited in teh controller, which will consolidate velocity
-#Current issue: it doesn't move the camera anymore. The emplementation commented out does move camera
+#emplemented camera following with more robust movement detection preventing corner catching, etc.
 #NOTE: haven't reemplemented border collision yet. Can do "Not Colliding With Floor" possibly
+#Alternatively, make walls using rectangles included in a list of impassible objects
 while True:
     clock.tick(60)
     
@@ -127,27 +151,36 @@ while True:
                 else:
                     color = purple
     if(pygame.key.get_pressed()[K_UP]):
-        if(moveRect(rect2,0,-speed,rect1)):
-           moveRect(floor1,0,-speed)#a loop would go here
-           moveRect(floor2,0,-speed)
-           CameraY = CameraY - speed
+        if(moveRect(rect2,0,-speed,*walls)):
+            #print "Not Colliding!"
+            moveRect(rect2,0,+speed)
+            camera.center = rect2.center
+            for obj in not_player:
+                moveRect(obj,0,speed)
     if(pygame.key.get_pressed()[K_DOWN]):
-        if(moveRect(rect2,0,speed,rect1)):
-           moveRect(floor1,0,speed)#a loop would go here
-           moveRect(floor2,0,speed)
-           CameraY = CameraY + speed
+        if(moveRect(rect2,0,speed,*walls)):
+            #print "Not Colliding!"
+            moveRect(rect2,0,-speed)
+            camera.center = rect2.center
+            for obj in not_player:
+                moveRect(obj,0,-speed)
     if(pygame.key.get_pressed()[K_LEFT]):
-        if(moveRect(rect2,-speed,0,rect1)):
-           moveRect(floor1,-speed,0)#a loop would go here
-           moveRect(floor2,-speed,0)
-           CameraX = CameraX - speed
+        if(moveRect(rect2,-speed,0,*walls)):
+            #print "Not Colliding!"
+            moveRect(rect2,speed,0)
+            camera.center = rect2.center
+            for obj in not_player:
+                moveRect(obj,speed,0)
     if(pygame.key.get_pressed()[K_RIGHT]):
-        if(moveRect(rect2,speed,0,rect1)):
-           moveRect(floor1,speed,0)#a loop would go here
-           moveRect(floor2,speed,0)
-           CameraX = CameraX + speed
+        if(moveRect(rect2,speed,0,*walls)):
+            #print "Not Colliding!"
+            moveRect(rect2,-speed,0)
+            camera.center = rect2.center
+            for obj in not_player:
+                moveRect(obj,-speed,0)
 #    roomBounds = getBounds(floor)
-    if xpos < 0:
+#   below is old border management
+    """if xpos < 0:
         xpos = px
         CameraX = cX
  #       print "Hit Left."
@@ -161,19 +194,19 @@ while True:
  #       print "Hit Right."
     if ypos > 560:
         ypos = py
-        CameraY = cY
+        CameraY = cY"""
  #       print "Hit Bottom."
  #   camera.x = CameraX
  #   camera.y = CameraY
+
+
     window.fill((40,50,180))
     pygame.draw.rect(window, (200,200,200), floor)
     pygame.draw.rect(window, (200,200,200), floor2)
     
     pygame.draw.rect(window, color, rect1)
     pygame.draw.rect(window, (100,200,250), rect2)
-    
 
-    
         
     pygame.display.update()
 
