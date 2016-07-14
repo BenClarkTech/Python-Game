@@ -1,5 +1,6 @@
 import pygame
 from pygame.locals import *
+from random import *
 
 """This program generates two squares
 One of them is moveable with the arrow keys.
@@ -103,35 +104,40 @@ class Player(Rect):
 
 class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
-    def __init__(self, x=0, y=0, w=winX, h=winY,N = False,S = False,E = False,W = False,floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32):
+    def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32):
         chunk = (1-gap)/2 #size of a piece of the wall on a gap side
+        (self.x,self.y) = position
+        (self.w,self.h) = size
+        (self.N,self.S,self.E,self.W) = doors
+        self.floor_color = floor_color
+        self.wall_color = wall_color
         self.Floors = []
-        self.Floors.append(Env((x,y),(w,h)))
+        self.Floors.append(Env((self.x,self.y),(self.w,self.h)))
         self.Walls = []
-        if N:
-            self.Walls.append(Wall((x-wall_thickness,y-wall_thickness),(w * chunk+wall_thickness,wall_thickness)))
-            self.Walls.append(Wall((x+(chunk+gap)*w,y-wall_thickness),(w * chunk+wall_thickness,wall_thickness)))
-            self.Floors.append(Env((x+chunk*w,y-wall_thickness),(w*gap,wall_thickness)))
+        if self.N:
+            self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
+            self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
+            self.Floors.append(Env((self.x+chunk*self.w - 1,self.y-wall_thickness),(self.w*gap + 1,wall_thickness)))
         else:
-            self.Walls.append(Wall((x-wall_thickness,y-wall_thickness),(w+2*wall_thickness,wall_thickness)))
-        if W:
-            self.Walls.append(Wall((x-wall_thickness,y-wall_thickness),(wall_thickness,h * chunk+wall_thickness)))
-            self.Walls.append(Wall((x-wall_thickness,y+(chunk+gap)*h),(wall_thickness,h * chunk+wall_thickness)))
-            self.Floors.append(Env((x-wall_thickness,y+chunk*h),(wall_thickness,h * gap)))
+            self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w+2*wall_thickness,wall_thickness)))
+        if self.W:
+            self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(wall_thickness,self.h * chunk+wall_thickness)))
+            self.Walls.append(Wall((self.x-wall_thickness,self.y+(chunk+gap)*self.h),(wall_thickness,self.h * chunk+wall_thickness)))
+            self.Floors.append(Env((self.x-wall_thickness,self.y+chunk*self.h-1),(wall_thickness,self.h * gap + 1)))
         else:    
-            self.Walls.append(Wall((x-wall_thickness,y-wall_thickness),(wall_thickness,h+2*wall_thickness)))
-        if S:
-            self.Walls.append(Wall((x-wall_thickness,y+h),(w * chunk+wall_thickness,wall_thickness)))
-            self.Walls.append(Wall((x+(chunk+gap)*w,y+h),(w * chunk+wall_thickness,wall_thickness)))
-            self.Floors.append(Env((x+chunk*w,y+h),(w * gap,wall_thickness)))
+            self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(wall_thickness,self.h+2*wall_thickness)))
+        if self.S:
+            self.Walls.append(Wall((self.x-wall_thickness,self.y+self.h),(self.w * chunk+wall_thickness,wall_thickness)))
+            self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y+self.h),(self.w * chunk+wall_thickness,wall_thickness)))
+            self.Floors.append(Env((self.x+chunk*self.w,self.y+self.h),(self.w * gap,wall_thickness)))
         else:
-            self.Walls.append(Wall((x-wall_thickness,y+h),(w+2*wall_thickness,wall_thickness)))
-        if E:
-            self.Walls.append(Wall((x+w,y-wall_thickness),(wall_thickness,h * chunk+wall_thickness)))
-            self.Walls.append(Wall((x+w,y+(chunk+gap)*h),(wall_thickness,h * chunk+wall_thickness)))
-            self.Floors.append(Env((x+w,y+chunk*h),(wall_thickness,h * gap)))
+            self.Walls.append(Wall((self.x-wall_thickness,self.y+self.h),(self.w+2*wall_thickness,wall_thickness)))
+        if self.E:
+            self.Walls.append(Wall((self.x+self.w,self.y-wall_thickness),(wall_thickness,self.h * chunk+wall_thickness)))
+            self.Walls.append(Wall((self.x+self.w,self.y+(chunk+gap)*self.h),(wall_thickness,self.h * chunk+wall_thickness)))
+            self.Floors.append(Env((self.x+self.w,self.y+chunk*self.h),(wall_thickness,self.h * gap)))
         else:    
-            self.Walls.append(Wall((x+w,y-wall_thickness),(wall_thickness,h+2*wall_thickness)))
+            self.Walls.append(Wall((self.x+self.w,self.y-wall_thickness),(wall_thickness,self.h+2*wall_thickness)))
         for wall in self.Walls:
             wall.color = wall_color
         for floor in self.Floors:
@@ -152,10 +158,52 @@ not_player = [] #because of how movement works we could actually include player,
 
 #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
 player = Player((xpos - camera.x,ypos - camera.y), (40,40))
-floor = Env((0 - camera.x,0 - camera.y),(winX,winY))
-floor2 = Env((650 - camera.x, 0 - camera.y),(winX,winY))
-rect1 = Wall((100 - camera.x,300 - camera.y),(20,20))
-testRoom = Room(-700,0,340,680,True,False,False,False,light_green,blue)
+#floor = Env((0 - camera.x,0 - camera.y),(winX,winY))
+#floor2 = Env((650 - camera.x, 0 - camera.y),(winX,winY))
+#rect1 = Wall((100 - camera.x,300 - camera.y),(20,20))
+#testRoom = Room((-700,0),(340,680),(True,False,False,False),light_green,blue)
+
+#room generation:
+roomW = 500
+roomH = 500
+thick = 20
+startX = 0
+startY = 0
+rows = randint(1,10)
+collumns = randint(1,10)
+wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal walls
+#So how can we seed in a maze pattern over the number of interior walls?
+    #Step 1: Create a meaningful way to seed and check the interior gate patterns
+    #Step 2: Create a way to translate those to the NSEW of the loop during iteration.
+rooms = []
+collumn = []
+N,S,E,W = False,False,False,False
+room_layout = (N,S,E,W)
+for i in range(0,rows):
+    for j in range(0,collumns):
+        #Sets the mandatory border walls
+        if(i == 0):
+            W = False
+        else:
+            W = True
+        if(j == 0):
+            N = False
+        else:
+            N = True
+        if(i == rows - 1):
+            E = False
+        else:
+            E = True
+        if(j == collumns - 1):
+            S = False
+        else:
+            S = True
+        #Ends mandatory border walls
+        room_layout = (N,S,E,W)
+        collumn.append(Room(((startX+(thick+roomW)*i),(startY+(thick+roomH)*j)),(roomW,roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = thick)) #Because, why not random colors?
+    rooms.append(collumn)
+    collumn = []
+        
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
