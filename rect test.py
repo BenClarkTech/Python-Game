@@ -171,39 +171,55 @@ startX = 0
 startY = 0
 rows = randint(1,10)
 collumns = randint(1,10)
-wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal walls
-#So how can we seed in a maze pattern over the number of interior walls?
-    #Step 1: Create a meaningful way to seed and check the interior gate patterns
-    #Step 2: Create a way to translate those to the NSEW of the loop during iteration.
+wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal walls -- Generally not needed?
 rooms = []
 collumn = []
 N,S,E,W = False,False,False,False
 room_layout = (N,S,E,W)
 for i in range(0,rows):
     for j in range(0,collumns):
+        #Randomization
+        seed = randint(0,2)
+        if seed == 0:
+            E = True
+            S = True
+        elif seed == 1:
+            E = False
+            S = True
+        elif seed == 2: #anyway to make a W N room? <<<Interesting question
+            E = True
+            S = False
         #Sets the mandatory border walls
         if(i == 0):
             W = False
-        else:
-            W = True
         if(j == 0):
             N = False
-        else:
-            N = True
         if(i == rows - 1):
             E = False
-        else:
-            E = True
         if(j == collumns - 1):
             S = False
-        else:
-            S = True
         #Ends mandatory border walls
+        #Sets the Dependent Walls
+        if(i - 1 >= 0):
+            W = rooms[i-1][j].E
+        if(j - 1 >= 0):
+            N = collumn[j-1].S
+        #Ends the Dependent Walls
+        #Ensures every room has an entrance
+        if j == 0:
+            if (N == False and S == False and E == False and W == False):
+                E = True
+        if i == rows - 1:
+            if (N == False and S == False and E == False and W == False):
+                S - True
+        #Theory: No room will be unaccessable with this code.
         room_layout = (N,S,E,W)
         collumn.append(Room(((startX+(thick+roomW)*i),(startY+(thick+roomH)*j)),(roomW,roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = thick)) #Because, why not random colors?
     rooms.append(collumn)
     collumn = []
-        
+#Would be nice to implement a gating mechanism which opens if the room is completed.
+
+
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
