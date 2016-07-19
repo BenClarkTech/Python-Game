@@ -2,11 +2,11 @@ import pygame
 from pygame.locals import *
 from random import *
 
-"""
-This program generates a matrix of rooms,
-and a player rectangle which is moveable with the arrow keys.
-Walls are generated between rooms with congruent doors.
-One room has an exit, which generates a new matrix of rooms.
+"""This program generates two squares
+One of them is moveable with the arrow keys.
+You can change the color of the other using spacebar.
+The moveable square will collide with the immobile one.
+The moveable square will collide with the window walls.
 """
 
 #Initialize pygame
@@ -112,6 +112,7 @@ class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
     def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32):
         chunk = (1-gap)/2 #size of a piece of the wall on a gap side
+        self.checked = False
         (self.x,self.y) = position
         (self.w,self.h) = size
         (self.N,self.S,self.E,self.W) = doors
@@ -148,6 +149,31 @@ class Room(object):
             wall.color = wall_color
         for floor in self.Floors:
             floor.color = floor_color
+
+    def SetFloor(self,color):
+        self.floor_color = color
+        for floor in self.Floors:
+            floor.color = color
+
+    def SetWall(self,color):
+        self.wall_color = color
+        for wall in self.Walls:
+            wall.color = color
+
+    def remove(self): #this is dirty - but works.
+        print "remove called."
+        for floor in self.Floors:
+            floor.width = 0
+            floor.height = 0
+            floor.x = -10000
+            floor.y = -10000
+            floor.color = bg_gray
+        for wall in self.Walls:
+            wall.width = 0
+            wall.height = 0
+            wall.x = -10000
+            wall.y = -10000
+            wall.color = bg_gray
         
 class Board(object):
     def __init__(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20):
@@ -161,6 +187,7 @@ class Board(object):
         self.goal = None
         self.level = 0
         self.generate()
+        self.rooms = []
         
     def generate(self):
         rooms = []
@@ -193,11 +220,13 @@ class Board(object):
                 if(j == 0):
                     N = False
                 if(i == self.collumns - 1):
-                    S = True
                     E = False
+                    #if(j != self.rows - 1): #These caveats are optional.
+                     #   S = True
                 if(j == self.rows - 1):
-                    E == True
                     S = False
+                    #if(i != self.rows - 1): #(cont) They basically create an alley around the bottom right to navigate around.
+                     #   E = True
                 #Ends mandatory border walls
                 #Sets the Dependent Walls
                 if(i - 1 >= 0):
@@ -215,21 +244,54 @@ class Board(object):
                 #Theory: No room will be unaccessable with this code.
                 room_layout = (N,S,E,W)
                 row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = self.thick)) #Because, why not random colors?
-            rooms.append(row)
-            row = []
+            """  #NEWCONECPT: Check passable if not remove the lock
+            test = False
+            if i != self.collumns - 1:
+                for room in row:
+                    if room.S == True:
+                        test = True
+            if test == False:
+                print "Horizontal Lock Adjusted"
+                rand = randint(0,len(row)-1)
+                row[rand].S == True"""
+            rooms.append(row)#not part of newconcept
+            row = []#not part of newconcept
+        """ test = False
+        for y in range(0,self.collumns-1):
+            for x in range(0,self.rows):
+                room = rooms[x][y]
+                if room.E == True:
+                    test = True
+            if test == False:
+                print "Vertical Lock Adjusted"
+                rand = randint(0,len(rooms) - 1)
+                print rand
+                rooms[rand][y].E = True
+                rooms[rand-1][y].W = True"""
+        #END NEWCONCEPT
+        #checker to get all passable terrain
+        self.rooms = rooms
+        self.checker(0,0);
         #Would be nice to implement a gating mechanism which opens if the room is completed.
         #pick a room to set the endpoint in
-        end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
-        while end_point == (0,0) and collumns != 0 and rows != 0:
+        end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1) #Endpoint is some random room on the board.
+        while (end_point == (0,0) and collumns != 0 and rows != 0) or rooms[end_point[0]][end_point[1]].checked != True: 
             end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
         self.goal = EndGoal((0,0),(40,40))
+        for row in rooms:
+            for room in row:
+                if room.checked == False:
+                    print "Removing room"
+                    room.remove()
         print end_point
         self.goal.center = rooms[end_point[0]][end_point[1]].Floors[0].center
         #endpoint ends
+        self.rooms = rooms #saves rooms for later use - should make all rooms self.rooms for efficiency
 
     def wash_board(self):
         del walls[:]
         del not_player[:]
+        del self.rooms[:]
 
     def remake(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20, level_up = 0):
         self.rows = rows
@@ -242,6 +304,23 @@ class Board(object):
         self.goal = None
         self.generate()
         self.level += level_up
+
+    def checker(self,x,y):
+        self.rooms[x][y].checked = True
+        self.rooms[x][y].SetFloor(chocolate)
+        print str(x)+" "+str(y)
+        if self.rooms[x][y].N:
+            if self.rooms[x][y-1].checked == False:
+                self.checker(x,y-1)
+        if self.rooms[x][y].S:
+            if self.rooms[x][y+1].checked == False:
+                self.checker(x,y+1)
+        if self.rooms[x][y].E:
+            if self.rooms[x+1][y].checked == False:
+                self.checker(x+1,y)
+        if self.rooms[x][y].W:
+            if self.rooms[x-1][y].checked == False:
+                self.checker(x-1,y)
 
 #End Class Declarations
 
@@ -268,6 +347,9 @@ player = Player((xpos - camera.x,ypos - camera.y), (40,40))
 rows = randint(1,10)
 collumns = randint(1,10)
 wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal walls -- Generally not needed?
+
+rows = 2
+collumns = 2
 board = Board(rows, collumns)
 
 #centers camera at start
@@ -367,7 +449,7 @@ while True:
         print walls
         rows = randint(1,10)
         collumns = randint(1,10)
-        board.remake(rows,collumns,level_up = 1)
+        board.remake(3,3,level_up = 1)
         player.x = xpos
         player.y = ypos
         camera.center = player.center
