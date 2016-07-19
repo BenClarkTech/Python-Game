@@ -1,7 +1,8 @@
 """
 ##########
-v. 0.2
-"Wallhugger"
+v. 0.3
+"Mob (Wallhugger)"
+-no longer uses the object "player"
 -chooses new direction on collision
 -random movement chosen
 -only moves in four cardinal directions
@@ -43,7 +44,7 @@ cement = (205,197,191)
 light_green = (113,198,113)
 blue = (92,172,239)
 dark_gray = (71,71,71)
-player_blue = (100,200,250)
+mob_blue = (100,200,250)
 bg_gray = (19,19,19)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
@@ -95,24 +96,24 @@ class Wall(Rect):
     def __init__(self, *args, **kwargs):
         super(Wall, self).__init__(*args, **kwargs)
         walls.append(self)
-        not_player.append(self)
+        not_mob.append(self)
         self.color = cement
 
 class Env(Rect):
     def __init__(self, *args, **kwargs):
         super(Env, self).__init__(*args, **kwargs)
-        not_player.append(self)
+        not_mob.append(self)
         self.color = dark_gray
 
-class Player(Rect):
+class mob(Rect):
     def __init__(self, *args, **kwargs):
-        super(Player, self).__init__(*args, **kwargs)
-        self.color = player_blue
+        super(mob, self).__init__(*args, **kwargs)
+        self.color = mob_blue
 
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
         super(EndGoal, self).__init__(*args,**kwargs)
-        not_player.append(self)
+        not_mob.append(self)
         self.color = red
         
 class Room(object):
@@ -217,7 +218,7 @@ class Board(object):
 
     def wash_board(self):
         del walls[:]
-        del not_player[:]
+        del not_mob[:]
 
     def remake(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20, level_up = 0):
         self.rows = rows
@@ -243,10 +244,10 @@ pygame.display.set_caption("Moving Box")
 
 pygame.display.flip()
 walls = []
-not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
+not_mob = [] #because of how movement works we could actually include mob, however it provides more clarity as to our method if we seperate them
 
 #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
-player = Player((xpos - camera.x,ypos - camera.y), (40,40))
+mob = mob((xpos - camera.x,ypos - camera.y), (40,40))
 #floor = Env((0 - camera.x,0 - camera.y),(winX,winY))
 #floor2 = Env((650 - camera.x, 0 - camera.y),(winX,winY))
 #rect1 = Wall((100 - camera.x,300 - camera.y),(20,20))
@@ -259,13 +260,13 @@ wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal w
 board = Board(rows, collumns)
 
 #centers camera at start
-player.center = camera.center#comment out to allow skewed camera
+mob.center = camera.center#comment out to allow skewed camera
 
 #adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
 #walls.append(rect1)
-#not_player.append(rect1)
-#not_player.append(floor)
-#not_player.append(floor2)
+#not_mob.append(rect1)
+#not_mob.append(floor)
+#not_mob.append(floor2)
 
 #possibly create a velocity pair which is edited in the controller, which will consolidate velocity
 #emplemented camera following with more robust movement detection preventing corner catching, etc.
@@ -291,55 +292,55 @@ while True:
     if (mob_direction < 0):
         mob_direction = randint(1, 4)
     if(mob_direction == 1):
-        if(moveRect(player,0,-speed,*walls)):
+        if(moveRect(mob,0,-speed,*walls)):
             #print "Not Colliding!"
-            moveRect(player,0,+speed)
-            camera.center = player.center
-            for obj in not_player:
+            moveRect(mob,0,+speed)
+            camera.center = mob.center
+            for obj in not_mob:
                 moveRect(obj,0,speed)
         else:
             mob_direction = randint(1, 4)
     if(mob_direction == 2):
-        if(moveRect(player,0,speed,*walls)):
+        if(moveRect(mob,0,speed,*walls)):
             #print "Not Colliding!"
-            moveRect(player,0,-speed)
-            camera.center = player.center
-            for obj in not_player:
+            moveRect(mob,0,-speed)
+            camera.center = mob.center
+            for obj in not_mob:
                 moveRect(obj,0,-speed)
         else:
             mob_direction = randint(1, 4)
     if(mob_direction == 3):
-        if(moveRect(player,-speed,0,*walls)):
+        if(moveRect(mob,-speed,0,*walls)):
             #print "Not Colliding!"
-            moveRect(player,speed,0)
-            camera.center = player.center
-            for obj in not_player:
+            moveRect(mob,speed,0)
+            camera.center = mob.center
+            for obj in not_mob:
                 moveRect(obj,speed,0)
         else:
             mob_direction = randint(1, 4)
     if(mob_direction == 4):
-        if(moveRect(player,speed,0,*walls)):
+        if(moveRect(mob,speed,0,*walls)):
             #print "Not Colliding!"
-            moveRect(player,-speed,0)
-            camera.center = player.center
-            for obj in not_player:
+            moveRect(mob,-speed,0)
+            camera.center = mob.center
+            for obj in not_mob:
                 moveRect(obj,-speed,0)
         else:
             mob_direction = randint(1, 4)
-    if player.colliderect(board.goal):
+    if mob.colliderect(board.goal):
         #print "next board"
         board.wash_board()
         print walls
         rows = 1
         collumns = randint(1,10)
         board.remake(rows,collumns,level_up = 1)
-        player.x = xpos
-        player.y = ypos
-        camera.center = player.center
+        mob.x = xpos
+        mob.y = ypos
+        camera.center = mob.center
         #Show levelup screen possibly with something like [space] to continue
         #clear board
         #increment level counter
-        #move player to start position
+        #move mob to start position
         #regenerate a board
 #    roomBounds = getBounds(floor)
 #   below is old border management
@@ -347,10 +348,10 @@ while True:
 
 #Painting of scene:
     window.fill(bg_gray)
-    for obj in not_player:
+    for obj in not_mob:
         pygame.draw.rect(window, obj.color, obj)
         
-    pygame.draw.rect(window, player.color, player)
+    pygame.draw.rect(window, mob.color, mob)
     
 #What's better, .update() or .flip()?
     pygame.display.update()
