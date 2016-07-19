@@ -1,11 +1,10 @@
 """
 ##########
-v. 0.4
-"Pong, the Great and Powerful"
--no longer uses the object "player"
--chooses opposite direction on collision
--only moves in four cardinal directions 
-(Possibly only ever moves left-right, due to init value)
+v. 0.5
+"Buggy"
+-moves based on vector (list of two values)
+-chooses opposite direction and one of three congruent directions on collision
+(Seems buggy. Gets stuck sometimes)
 ##########
 """
 
@@ -24,7 +23,7 @@ ypos = 280
 px=xpos#archaic variables for revision
 py=ypos
 speed = 3
-mob_direction = -1
+mob_direction = [-1, 0]
 
 CameraX = 0#camera start
 CameraY = 0
@@ -287,9 +286,9 @@ while True:
     ###########################################
     ###########################################
     ###########################################
-    if (mob_direction < 0):
-        mob_direction = randint(1, 4)
-    if(mob_direction == 1):
+    if (mob_direction[0] < 0):
+        mob_direction[0] = randint(1, 4)
+    if(mob_direction[0] == 1 or mob_direction[1] == 1):
         if(moveRect(mob,0,-speed,*walls)):
             #print "Not Colliding!"
             moveRect(mob,0,+speed)
@@ -297,8 +296,9 @@ while True:
             for obj in not_mob:
                 moveRect(obj,0,speed)
         else:
-            mob_direction = 2#randint(1, 4)
-    if(mob_direction == 2):
+            mob_direction[0] = 2
+            mob_direction[1] = choice([2, 3, 4])
+    if(mob_direction[0] == 2 or mob_direction[1] == 2):
         if(moveRect(mob,0,speed,*walls)):
             #print "Not Colliding!"
             moveRect(mob,0,-speed)
@@ -306,8 +306,9 @@ while True:
             for obj in not_mob:
                 moveRect(obj,0,-speed)
         else:
-            mob_direction = 1#randint(1, 4)
-    if(mob_direction == 3):
+            mob_direction[0] = 1
+            mob_direction[1] = choice([1, 3, 4])
+    if(mob_direction[0] == 3 or mob_direction[1] == 3):
         if(moveRect(mob,-speed,0,*walls)):
             #print "Not Colliding!"
             moveRect(mob,speed,0)
@@ -315,8 +316,9 @@ while True:
             for obj in not_mob:
                 moveRect(obj,speed,0)
         else:
-            mob_direction = 4#randint(1, 4)
-    if(mob_direction == 4):
+            mob_direction[0] = 4
+            mob_direction[1] = choice([1, 2, 3])
+    if(mob_direction[0] == 4 or mob_direction[1] == 4):
         if(moveRect(mob,speed,0,*walls)):
             #print "Not Colliding!"
             moveRect(mob,-speed,0)
@@ -324,7 +326,8 @@ while True:
             for obj in not_mob:
                 moveRect(obj,-speed,0)
         else:
-            mob_direction = 3#randint(1, 4)
+            mob_direction[0] = 3
+            mob_direction[1] = choice([1, 2, 4])
     if mob.colliderect(board.goal):
         #print "next board"
         board.wash_board()
