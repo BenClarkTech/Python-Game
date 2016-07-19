@@ -1,12 +1,10 @@
 """
 ##########
-v. 0.5
-"Buggy"
+v. 0.6
+"Bounce"
+-0.5 sticking and left wall bugs fixed.
 -moves based on vector (list of two values)
 -chooses opposite direction and one of three congruent directions on collision
-(Seems buggy. Gets stuck sometimes)
-(Seems to always bounce NE off of left wall)
-(Observed getting stuck against right wall multiple times)
 ##########
 """
 
@@ -290,7 +288,7 @@ while True:
     ###########################################
     if (mob_direction[0] < 0):
         mob_direction[0] = randint(1, 4)
-    if(mob_direction[0] == 1 or mob_direction[1] == 1):
+    if(mob_direction[0] == 1 or mob_direction[1] == 1): #moving up
         if(moveRect(mob,0,-speed,*walls)):
             #print "Not Colliding!"
             moveRect(mob,0,+speed)
@@ -300,7 +298,7 @@ while True:
         else:
             mob_direction[0] = 2
             mob_direction[1] = choice([2, 3, 4])
-    if(mob_direction[0] == 2 or mob_direction[1] == 2):
+    if(mob_direction[0] == 2 or mob_direction[1] == 2): #moving down
         if(moveRect(mob,0,speed,*walls)):
             #print "Not Colliding!"
             moveRect(mob,0,-speed)
@@ -310,7 +308,7 @@ while True:
         else:
             mob_direction[0] = 1
             mob_direction[1] = choice([1, 3, 4])
-    if(mob_direction[0] == 3 or mob_direction[1] == 3):
+    if(mob_direction[0] == 3 or mob_direction[1] == 3): #moving left
         if(moveRect(mob,-speed,0,*walls)):
             #print "Not Colliding!"
             moveRect(mob,speed,0)
@@ -319,8 +317,8 @@ while True:
                 moveRect(obj,speed,0)
         else:
             mob_direction[0] = 4
-            mob_direction[1] = choice([1, 2, 3])
-    if(mob_direction[0] == 4 or mob_direction[1] == 4):
+            mob_direction[1] = choice([1, 2, 4])
+    if(mob_direction[0] == 4 or mob_direction[1] == 4): #moving right
         if(moveRect(mob,speed,0,*walls)):
             #print "Not Colliding!"
             moveRect(mob,-speed,0)
@@ -329,7 +327,7 @@ while True:
                 moveRect(obj,-speed,0)
         else:
             mob_direction[0] = 3
-            mob_direction[1] = choice([1, 2, 4])
+            mob_direction[1] = choice([1, 2, 3])
     if mob.colliderect(board.goal):
         #print "next board"
         board.wash_board()
