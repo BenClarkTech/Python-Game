@@ -5,6 +5,8 @@ v. 0.5
 -moves based on vector (list of two values)
 -chooses opposite direction and one of three congruent directions on collision
 (Seems buggy. Gets stuck sometimes)
+(Seems to always bounce NE off of left wall)
+(Observed getting stuck against right wall multiple times)
 ##########
 """
 
