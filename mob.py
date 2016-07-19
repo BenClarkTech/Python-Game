@@ -1,15 +1,13 @@
 """
 ##########
-v. 0.3
-"Mob (Wallhugger)"
+v. 0.4
+"Pong, the Great and Powerful"
 -no longer uses the object "player"
--chooses new direction on collision
--random movement chosen
--only moves in four cardinal directions
--has tendancy to hug walls
+-chooses opposite direction on collision
+-only moves in four cardinal directions 
+(Possibly only ever moves left-right, due to init value)
 ##########
 """
-
 
 import pygame
 from pygame.locals import *
@@ -299,7 +297,7 @@ while True:
             for obj in not_mob:
                 moveRect(obj,0,speed)
         else:
-            mob_direction = randint(1, 4)
+            mob_direction = 2#randint(1, 4)
     if(mob_direction == 2):
         if(moveRect(mob,0,speed,*walls)):
             #print "Not Colliding!"
@@ -308,7 +306,7 @@ while True:
             for obj in not_mob:
                 moveRect(obj,0,-speed)
         else:
-            mob_direction = randint(1, 4)
+            mob_direction = 1#randint(1, 4)
     if(mob_direction == 3):
         if(moveRect(mob,-speed,0,*walls)):
             #print "Not Colliding!"
@@ -317,7 +315,7 @@ while True:
             for obj in not_mob:
                 moveRect(obj,speed,0)
         else:
-            mob_direction = randint(1, 4)
+            mob_direction = 4#randint(1, 4)
     if(mob_direction == 4):
         if(moveRect(mob,speed,0,*walls)):
             #print "Not Colliding!"
@@ -326,7 +324,7 @@ while True:
             for obj in not_mob:
                 moveRect(obj,-speed,0)
         else:
-            mob_direction = randint(1, 4)
+            mob_direction = 3#randint(1, 4)
     if mob.colliderect(board.goal):
         #print "next board"
         board.wash_board()
