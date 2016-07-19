@@ -41,8 +41,6 @@ bg_gray = (19,19,19)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
 
-
-
 def getBounds(rec):
     """Takes in a rectangle and returns a list of the various bounds.
     [0] is x left bound, [1] is x right bound, [2] is y top bound
@@ -85,17 +83,41 @@ def moveRect_single_axis(rec,dx,dy,*args):
     return True
 
 class Wall(Rect):
-    def __init__(self, *args, **kwargs):
-        super(Wall, self).__init__(*args, **kwargs)
-        walls.append(self)
-        not_player.append(self)
-        self.color = cement
+    def __init__(self, (x,y) = (0,0), (w,h) = (0,0), rec = None, *args, **kwargs):
+        if rec == None:
+            super(Wall, self).__init__((x,y),(w,h),*args, **kwargs)
+            walls.append(self)
+            not_player.append(self)
+            self.color = cement
+        else:
+            self.x = rec.x
+            self.y = rec.y
+            self.w = rec.w
+            self.h = rec.h
+            not_player.append(self)
+            self.color = cement
+
+    def remove(self):
+        not_player.remove(self)
+        walls.remove(self)
+
 
 class Env(Rect):
-    def __init__(self, *args, **kwargs):
-        super(Env, self).__init__(*args, **kwargs)
-        not_player.append(self)
-        self.color = dark_gray
+    def __init__(self, (x, y) = (0,0), (w, h) = (0,0), rec = None, *args, **kwargs):
+        if rec == None:
+            super(Env, self).__init__((x,y),(w,h))
+            not_player.append(self)
+            self.color = dark_gray
+        else:
+            self.x = rec.x
+            self.y = rec.y
+            self.w = rec.w
+            self.h = rec.h
+            not_player.append(self)
+            self.color = dark_gray
+            
+    def remove(self):
+        not_player.remove(self)
 
 class Player(Rect):
     def __init__(self, *args, **kwargs):
@@ -107,11 +129,27 @@ class EndGoal(Rect):
         super(EndGoal, self).__init__(*args,**kwargs)
         not_player.append(self)
         self.color = red
+
+    def remove(self):
+        not_player.remove(self)
+
+"""class SampleSprite(pygame.sprite.Sprite): #Example of sprites - this allows sprite groups <<<NOT BEING USED IN THIS PROJECT
+    def __init__(self, color=light_green, x=-100, y=-100, player = None, *args, **kwargs):
+        super(SampleSprite, self).__init__(*args, **kwargs)
+        self.image = pygame.Surface([100,100])
+        self.image.fill(color)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.env = Env(rec = self.rect)
+        self.env.color = color"""
         
 class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
-    def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32):
+    def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32,level = 0):
         chunk = (1-gap)/2 #size of a piece of the wall on a gap side
+        self.level = level
+        self.level = (randint(0,2) + level) * randint(0,1)
         self.checked = False
         (self.x,self.y) = position
         (self.w,self.h) = size
@@ -160,21 +198,13 @@ class Room(object):
         for wall in self.Walls:
             wall.color = color
 
-    def remove(self): #this is dirty - but works.
-        print "remove called."
+    def remove(self):
+        #print "remove called."
         for floor in self.Floors:
-            floor.width = 0
-            floor.height = 0
-            floor.x = -10000
-            floor.y = -10000
-            floor.color = bg_gray
+            floor.remove()
         for wall in self.Walls:
-            wall.width = 0
-            wall.height = 0
-            wall.x = -10000
-            wall.y = -10000
-            wall.color = bg_gray
-        
+            wall.remove()
+
 class Board(object):
     def __init__(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20):
         self.rows = rows
@@ -186,10 +216,12 @@ class Board(object):
         self.thick = thick
         self.goal = None
         self.level = 0
-        self.generate()
         self.rooms = []
+        self.generate()
         
     def generate(self):
+        self.collumns += self.level/2
+        self.rows += self.level/2
         rooms = []
         row = []
         N,S,E,W = False,False,False,False
@@ -243,7 +275,7 @@ class Board(object):
                         S = True
                 #Theory: No room will be unaccessable with this code.
                 room_layout = (N,S,E,W)
-                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = self.thick)) #Because, why not random colors?
+                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
             """  #NEWCONECPT: Check passable if not remove the lock
             test = False
             if i != self.collumns - 1:
@@ -308,7 +340,7 @@ class Board(object):
     def checker(self,x,y):
         self.rooms[x][y].checked = True
         self.rooms[x][y].SetFloor(chocolate)
-        print str(x)+" "+str(y)
+        #print str(x)+" "+str(y)
         if self.rooms[x][y].N:
             if self.rooms[x][y-1].checked == False:
                 self.checker(x,y-1)
@@ -327,7 +359,6 @@ class Board(object):
 
 clock = pygame.time.Clock()
 
-
 window = pygame.display.set_mode([winX,winY])
 camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene
 pygame.display.set_caption("Moving Box")
@@ -338,22 +369,19 @@ not_player = [] #because of how movement works we could actually include player,
 
 #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
 player = Player((xpos - camera.x,ypos - camera.y), (40,40))
-#floor = Env((0 - camera.x,0 - camera.y),(winX,winY))
-#floor2 = Env((650 - camera.x, 0 - camera.y),(winX,winY))
-#rect1 = Wall((100 - camera.x,300 - camera.y),(20,20))
-#testRoom = Room((-700,0),(340,680),(True,False,False,False),light_green,blue)
 
 #room generation:
 rows = randint(1,10)
 collumns = randint(1,10)
-wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal walls -- Generally not needed?
 
 rows = 2
 collumns = 2
 board = Board(rows, collumns)
-
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
+
+#text initialization
+font = pygame.font.Font(None, 36)
 
 #adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
 #walls.append(rect1)
@@ -446,10 +474,10 @@ while True:
     if player.colliderect(board.goal):
         #print "next board"
         board.wash_board()
-        print walls
-        rows = randint(1,10)
-        collumns = randint(1,10)
-        board.remake(3,3,level_up = 1)
+        #print walls
+        rows = randint(1,4)
+        collumns = randint(1,4)
+        board.remake(rows,collumns,level_up = 1)
         player.x = xpos
         player.y = ypos
         camera.center = player.center
@@ -485,7 +513,20 @@ while True:
         pygame.draw.rect(window, obj.color, obj)
         
     pygame.draw.rect(window, player.color, player)
-    
+
+#Paint Text:
+    for row in board.rooms:#This loop paints all the room levels
+        for room in row:
+            if room.checked:
+                text = font.render(str(room.level), 1, (10,10,10))
+                textpos = text.get_rect()
+                textpos.center = room.Floors[0].center
+                window.blit(text,textpos)
+    text = font.render(str(board.level), 1, cement)
+    textpos = text.get_rect()
+    textpos.topright = camera.topright
+    window.blit(text,textpos)
+
 #What's better, .update() or .flip()?
     pygame.display.update()
 
