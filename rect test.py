@@ -2,11 +2,11 @@ import pygame
 from pygame.locals import *
 from random import *
 
-"""This program generates two squares
-One of them is moveable with the arrow keys.
-You can change the color of the other using spacebar.
-The moveable square will collide with the immobile one.
-The moveable square will collide with the window walls.
+"""
+This program generates a matrix of rooms,
+and a player rectangle which is moveable with the arrow keys.
+Walls are generated between rooms with congruent doors.
+One room has an exit, which generates a new matrix of rooms.
 """
 
 #Initialize pygame
