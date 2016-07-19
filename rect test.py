@@ -102,6 +102,12 @@ class Player(Rect):
         super(Player, self).__init__(*args, **kwargs)
         self.color = player_blue
 
+class EndGoal(Rect):
+    def __init__(self, *args, **kwargs):
+        super(EndGoal, self).__init__(*args,**kwargs)
+        not_player.append(self)
+        self.color = red
+        
 class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
     def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32):
@@ -143,6 +149,101 @@ class Room(object):
         for floor in self.Floors:
             floor.color = floor_color
         
+class Board(object):
+    def __init__(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20):
+        self.rows = rows
+        self.collumns = collumns
+        self.startX = startX
+        self.startY = startY
+        self.roomW = roomW
+        self.roomH = roomH
+        self.thick = thick
+        self.goal = None
+        self.level = 0
+        self.generate()
+        
+    def generate(self):
+        rooms = []
+        row = []
+        N,S,E,W = False,False,False,False
+        room_layout = (N,S,E,W)
+        for i in range(0,self.collumns):
+            for j in range(0,self.rows):
+                #Randomization
+                seed = randint(0,2)
+                if seed == 0:
+                    E = True
+                    S = True
+                elif seed == 1:
+                    E = False
+                    S = True
+                elif seed == 2: #anyway to make a W N room? <<<Interesting question
+                    E = True
+                    S = False
+                #Hallway Anomaly
+                if self.collumns == 1:
+                    N = True
+                    S = True
+                if self.rows == 1:
+                    E = True
+                    W = True
+                #Sets the mandatory border walls
+                if(i == 0):
+                    W = False
+                if(j == 0):
+                    N = False
+                if(i == self.collumns - 1):
+                    S = True
+                    E = False
+                if(j == self.rows - 1):
+                    E == True
+                    S = False
+                #Ends mandatory border walls
+                #Sets the Dependent Walls
+                if(i - 1 >= 0):
+                    W = rooms[i-1][j].E
+                if(j - 1 >= 0):
+                    N = row[j-1].S
+                #Ends the Dependent Walls
+                #Ensures every room has an entrance
+                if j != 0:
+                    if (N == False and S == False and E == False and W == False):
+                        E = True
+                if i != self.collumns - 1:
+                    if (N == False and S == False and E == False and W == False):
+                        S = True
+                #Theory: No room will be unaccessable with this code.
+                room_layout = (N,S,E,W)
+                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = self.thick)) #Because, why not random colors?
+            rooms.append(row)
+            row = []
+        #Would be nice to implement a gating mechanism which opens if the room is completed.
+        #pick a room to set the endpoint in
+        end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
+        while end_point == (0,0) and collumns != 0 and rows != 0:
+            end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
+        self.goal = EndGoal((0,0),(40,40))
+        print end_point
+        self.goal.center = rooms[end_point[0]][end_point[1]].Floors[0].center
+        #endpoint ends
+
+    def wash_board(self):
+        del walls[:]
+        del not_player[:]
+
+    def remake(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20, level_up = 0):
+        self.rows = rows
+        self.collumns = collumns
+        self.startX = startX
+        self.startY = startY
+        self.roomW = roomW
+        self.roomH = roomH
+        self.thick = thick
+        self.goal = None
+        self.generate()
+        self.level += level_up
+
+#End Class Declarations
 
 
 clock = pygame.time.Clock()
@@ -164,61 +265,10 @@ player = Player((xpos - camera.x,ypos - camera.y), (40,40))
 #testRoom = Room((-700,0),(340,680),(True,False,False,False),light_green,blue)
 
 #room generation:
-roomW = 500
-roomH = 500
-thick = 20
-startX = 0
-startY = 0
 rows = randint(1,10)
 collumns = randint(1,10)
 wall_count = (collumns - 1) * rows + collumns * (rows - 1) #number of internal walls -- Generally not needed?
-rooms = []
-collumn = []
-N,S,E,W = False,False,False,False
-room_layout = (N,S,E,W)
-for i in range(0,rows):
-    for j in range(0,collumns):
-        #Randomization
-        seed = randint(0,2)
-        if seed == 0:
-            E = True
-            S = True
-        elif seed == 1:
-            E = False
-            S = True
-        elif seed == 2: #anyway to make a W N room? <<<Interesting question
-            E = True
-            S = False
-        #Sets the mandatory border walls
-        if(i == 0):
-            W = False
-        if(j == 0):
-            N = False
-        if(i == rows - 1):
-            E = False
-        if(j == collumns - 1):
-            S = False
-        #Ends mandatory border walls
-        #Sets the Dependent Walls
-        if(i - 1 >= 0):
-            W = rooms[i-1][j].E
-        if(j - 1 >= 0):
-            N = collumn[j-1].S
-        #Ends the Dependent Walls
-        #Ensures every room has an entrance
-        if j == 0:
-            if (N == False and S == False and E == False and W == False):
-                E = True
-        if i == rows - 1:
-            if (N == False and S == False and E == False and W == False):
-                S - True
-        #Theory: No room will be unaccessable with this code.
-        room_layout = (N,S,E,W)
-        collumn.append(Room(((startX+(thick+roomW)*i),(startY+(thick+roomH)*j)),(roomW,roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = thick)) #Because, why not random colors?
-    rooms.append(collumn)
-    collumn = []
-#Would be nice to implement a gating mechanism which opens if the room is completed.
-
+board = Board(rows, collumns)
 
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
@@ -267,10 +317,10 @@ player.center = camera.center#comment out to allow skewed camera
         floor.x = 0-CameraX
         floor.y = 0-CameraY """
     
-#possibly create a velocity pair which is edited in teh controller, which will consolidate velocity
+#possibly create a velocity pair which is edited in the controller, which will consolidate velocity
 #emplemented camera following with more robust movement detection preventing corner catching, etc.
 #NOTE: haven't reemplemented border collision yet. Can do "Not Colliding With Floor" possibly
-#Alternatively, make walls using rectangles included in a list of impassible objects
+#Alternatively, make walls using rectangles included in a list of impassible objects <<<This method has been emplemented.
 while True:
     clock.tick(60)
     
@@ -280,7 +330,7 @@ while True:
         elif event.type == pygame.KEYDOWN:
             if event.key == K_SPACE:
                 if color == purple:
-                    color = red
+                  color = red
                 else:
                     color = purple
     if(pygame.key.get_pressed()[K_UP]):
@@ -311,6 +361,21 @@ while True:
             camera.center = player.center
             for obj in not_player:
                 moveRect(obj,-speed,0)
+    if player.colliderect(board.goal):
+        #print "next board"
+        board.wash_board()
+        print walls
+        rows = randint(1,10)
+        collumns = randint(1,10)
+        board.remake(rows,collumns,level_up = 1)
+        player.x = xpos
+        player.y = ypos
+        camera.center = player.center
+        #Show levelup screen possibly with something like [space] to continue
+        #clear board
+        #increment level counter
+        #move player to start position
+        #regenerate a board
 #    roomBounds = getBounds(floor)
 #   below is old border management
     """if xpos < 0:
@@ -338,8 +403,8 @@ while True:
         pygame.draw.rect(window, obj.color, obj)
         
     pygame.draw.rect(window, player.color, player)
-
-#What's better, .update() or .flip()?        
+    
+#What's better, .update() or .flip()?
     pygame.display.update()
 
 class myRect(pygame.rect):
