@@ -1,11 +1,11 @@
 """
 ##########
-v. 0.1
-"Spazzy McSpazzerson"
--chooses new direction every frame
--random movement
+v. 0.2
+"Wallhugger"
+-chooses new direction on collision
+-random movement chosen
 -only moves in four cardinal directions
--does collide tho
+-has tendancy to hug walls
 ##########
 """
 
@@ -25,6 +25,7 @@ ypos = 280
 px=xpos#archaic variables for revision
 py=ypos
 speed = 3
+mob_direction = -1
 
 CameraX = 0#camera start
 CameraY = 0
@@ -282,7 +283,13 @@ while True:
                   color = red
                 else:
                     color = purple
-    mob_direction = randint(1, 4)
+    
+    ###########################################
+    ###########################################
+    ###########################################
+    ###########################################
+    if (mob_direction < 0):
+        mob_direction = randint(1, 4)
     if(mob_direction == 1):
         if(moveRect(player,0,-speed,*walls)):
             #print "Not Colliding!"
@@ -290,6 +297,8 @@ while True:
             camera.center = player.center
             for obj in not_player:
                 moveRect(obj,0,speed)
+        else:
+            mob_direction = randint(1, 4)
     if(mob_direction == 2):
         if(moveRect(player,0,speed,*walls)):
             #print "Not Colliding!"
@@ -297,6 +306,8 @@ while True:
             camera.center = player.center
             for obj in not_player:
                 moveRect(obj,0,-speed)
+        else:
+            mob_direction = randint(1, 4)
     if(mob_direction == 3):
         if(moveRect(player,-speed,0,*walls)):
             #print "Not Colliding!"
@@ -304,6 +315,8 @@ while True:
             camera.center = player.center
             for obj in not_player:
                 moveRect(obj,speed,0)
+        else:
+            mob_direction = randint(1, 4)
     if(mob_direction == 4):
         if(moveRect(player,speed,0,*walls)):
             #print "Not Colliding!"
@@ -311,6 +324,8 @@ while True:
             camera.center = player.center
             for obj in not_player:
                 moveRect(obj,-speed,0)
+        else:
+            mob_direction = randint(1, 4)
     if player.colliderect(board.goal):
         #print "next board"
         board.wash_board()
