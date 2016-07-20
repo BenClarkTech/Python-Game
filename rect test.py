@@ -18,7 +18,9 @@ xpos = 300#starting position if camera skewed
 ypos = 280
 px=xpos#archaic variables for revision
 py=ypos
-speed = 3
+default_speed = 3
+speed = default_speed
+CLOCK = 60
 
 CameraX = 0#camera start
 CameraY = 0
@@ -40,7 +42,8 @@ player_blue = (100,200,250)
 bg_gray = (19,19,19)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
-
+#End Constand Definition
+#Begin Function Definition
 def getBounds(rec):
     """Takes in a rectangle and returns a list of the various bounds.
     [0] is x left bound, [1] is x right bound, [2] is y top bound
@@ -81,7 +84,8 @@ def moveRect_single_axis(rec,dx,dy,*args):
             return False
     #print "not Colliding"
     return True
-
+#End Function Definition
+#Begin Class Definition
 class Wall(Rect):
     def __init__(self, (x,y) = (0,0), (w,h) = (0,0), rec = None, *args, **kwargs):
         if rec == None:
@@ -133,6 +137,37 @@ class EndGoal(Rect):
     def remove(self):
         not_player.remove(self)
 
+#Event Class Blocks
+"""
+To add an event there are 4 components. First you must make a new event array. Simple, just declare it in the array block.
+Second you must create a new event class. These are all pretty cookie cutter, just follow the models below and append to your appropriate array.
+Third you must create a new event in the generation block. This is creating the hitbox and aligning it to the room center. Follow the existing examples.
+Finally you must create the rule for those events. This is located in the main loop. Emplement by adding a for loop over your array to check collisions with Player.
+"""
+class SpeedS(Rect):
+    def __init__(self, *args, **kwargs):
+        super(SpeedS, self).__init__(*args,**kwargs)
+        not_player.append(self)
+        SmallSpeed.append(self)
+        self.color = light_green
+
+    def remove(self):
+        not_player.remove(self)
+        SmallSpeed.remove(self)
+
+class SpeedB(Rect):
+    def __init__(self, *args, **kwargs):
+        super(SpeedB, self).__init__(*args,**kwargs)
+        not_player.append(self)
+        BigSpeed.append(self)
+        self.color = purple
+
+    def remove(self):
+        not_player.remove(self)
+        SmallSpeed.remove(self)
+
+#End Event Class Blocks
+        
 """class SampleSprite(pygame.sprite.Sprite): #Example of sprites - this allows sprite groups <<<NOT BEING USED IN THIS PROJECT
     def __init__(self, color=light_green, x=-100, y=-100, player = None, *args, **kwargs):
         super(SampleSprite, self).__init__(*args, **kwargs)
@@ -148,6 +183,7 @@ class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
     def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32,level = 0):
         chunk = (1-gap)/2 #size of a piece of the wall on a gap side
+        self.chunk = chunk #optimization: replace chunk w/ self.chunk
         self.level = level
         self.level = (randint(0,2) + level) * randint(0,1)
         self.checked = False
@@ -187,6 +223,7 @@ class Room(object):
             wall.color = wall_color
         for floor in self.Floors:
             floor.color = floor_color
+        self.center = self.Floors[0].center
 
     def SetFloor(self,color):
         self.floor_color = color
@@ -204,6 +241,27 @@ class Room(object):
             floor.remove()
         for wall in self.Walls:
             wall.remove()
+
+    def GetCover(self):
+        covers = 3
+        cover_model = randint(0,covers)
+        if cover_model == 0:
+            return
+        elif cover_model == 1: #One Box Center
+            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.3),(self.w*.4,self.h*.4)))
+        elif cover_model == 2: #Three Box Center
+            self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
+            self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
+            self.Walls.append(Wall((self.x + .35 * self.w, self.y + .6 * self.h),(.3*self.w,.3*self.h)))
+        elif cover_model == 3: #Four corner boxes
+            self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
+            self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
+            self.Walls[len(self.Walls)-1].topright = self.Floors[0].topright
+            self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
+            self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
+            self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
+            self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
+
 
 class Board(object):
     def __init__(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20):
@@ -224,6 +282,7 @@ class Board(object):
         self.rows += self.level/2
         rooms = []
         row = []
+        events = []
         N,S,E,W = False,False,False,False
         room_layout = (N,S,E,W)
         for i in range(0,self.collumns):
@@ -299,8 +358,8 @@ class Board(object):
                 rand = randint(0,len(rooms) - 1)
                 print rand
                 rooms[rand][y].E = True
-                rooms[rand-1][y].W = True"""
-        #END NEWCONCEPT
+                rooms[rand-1][y].W = True\
+        #END NEWCONCEPT"""
         #checker to get all passable terrain
         self.rooms = rooms
         self.checker(0,0);
@@ -309,15 +368,43 @@ class Board(object):
         end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1) #Endpoint is some random room on the board.
         while (end_point == (0,0) and collumns != 0 and rows != 0) or rooms[end_point[0]][end_point[1]].checked != True: 
             end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
+        #creates the end point
         self.goal = EndGoal((0,0),(40,40))
+        print end_point #debugging location of endpoint
+        #aligns end point to middle of room
+        self.goal.center = rooms[end_point[0]][end_point[1]].Floors[0].center
+        #Sets levels to prevent unkindly spawns of cover
+        rooms[end_point[0]][end_point[1]].level = 0
+        rooms[0][0].level = 0
+        for row in rooms:
+            for room in row:
+                if room.level > 0 and room.checked == True:
+                    room.GetCover()
+        #EventGeneration goes here !!!Read instructions before adding event located near the event class block!!!
+        for row in rooms:
+            for room in row:
+                if room.level == 0 and room.checked == True and room != rooms[end_point[0]][end_point[1]]:
+                    if randint(0,9) == 9:
+                        number_big = 1 #if you add a new big event increment this
+                        choice = randint(1,number_big)
+                        if choice == 1:
+                            events.append(SpeedB((0,0),(100,100)))
+                            events[len(events)-1].center = room.center
+                        #addnew big events here as an elif
+                    elif randint(0,4) == 4:
+                        number_small = 1 #if you add a new small event increment this
+                        choice = randint(1,number_small)
+                        if choice == 1:
+                            events.append(SpeedS((0,0),(50,50)))
+                            events[len(events)-1].center = room.center
+                        #addnew small events here as an elif
+                            
+        #Unaccessable room removal:
         for row in rooms:
             for room in row:
                 if room.checked == False:
                     print "Removing room"
                     room.remove()
-        print end_point
-        self.goal.center = rooms[end_point[0]][end_point[1]].Floors[0].center
-        #endpoint ends
         self.rooms = rooms #saves rooms for later use - should make all rooms self.rooms for efficiency
 
     def wash_board(self):
@@ -354,7 +441,7 @@ class Board(object):
             if self.rooms[x-1][y].checked == False:
                 self.checker(x-1,y)
 
-#End Class Declarations
+#End Class Definition
 
 
 clock = pygame.time.Clock()
@@ -364,8 +451,14 @@ camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't e
 pygame.display.set_caption("Moving Box")
 
 pygame.display.flip()
+
+timer = 0
+                                          
+#Array Initialization
 walls = []
 not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
+SmallSpeed = []
+BigSpeed = []
 
 #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
 player = Player((xpos - camera.x,ypos - camera.y), (40,40))
@@ -380,8 +473,12 @@ board = Board(rows, collumns)
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
-#text initialization
-font = pygame.font.Font(None, 36)
+#text initialization:
+body = pygame.font.Font(None, 36)
+subhead = pygame.font.Font(None, 72)
+header = pygame.font.Font(None, 144)
+subtitle = pygame.font.Font(None, 220)
+title = pygame.font.Font(None, 288)
 
 #adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
 #walls.append(rect1)
@@ -432,8 +529,11 @@ font = pygame.font.Font(None, 36)
 #NOTE: haven't reemplemented border collision yet. Can do "Not Colliding With Floor" possibly
 #Alternatively, make walls using rectangles included in a list of impassible objects <<<This method has been emplemented.
 while True:
-    clock.tick(60)
-    
+    clock.tick(CLOCK)
+    if timer != 0:
+        timer -= 1
+    else:
+        speed = default_speed
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
@@ -486,6 +586,14 @@ while True:
         #increment level counter
         #move player to start position
         #regenerate a board
+    for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
+        if player.colliderect(event):
+                speed = default_speed+3
+                timer = 10 * CLOCK
+    for event in SmallSpeed:
+        if player.colliderect(event):
+                speed = default_speed+1
+                timer = 10 * CLOCK
 #    roomBounds = getBounds(floor)
 #   below is old border management
     """if xpos < 0:
@@ -518,15 +626,15 @@ while True:
     for row in board.rooms:#This loop paints all the room levels
         for room in row:
             if room.checked:
-                text = font.render(str(room.level), 1, (10,10,10))
+                text = body.render(str(room.level), 1, (10,10,10))
                 textpos = text.get_rect()
                 textpos.center = room.Floors[0].center
                 window.blit(text,textpos)
-    text = font.render(str(board.level), 1, cement)
+    text = subhead.render(str(board.level), 1, cement)
     textpos = text.get_rect()
     textpos.topright = camera.topright
     window.blit(text,textpos)
-
+    
 #What's better, .update() or .flip()?
     pygame.display.update()
 
