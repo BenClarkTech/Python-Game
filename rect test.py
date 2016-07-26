@@ -129,6 +129,7 @@ class Player(Rect):
 class mob(Rect):
     def __init__(self, *args, **kwargs):
         super(mob, self).__init__(*args, **kwargs)
+        not_player.append(self)
         self.color = red
 
 class EndGoal(Rect):
@@ -167,7 +168,7 @@ class SpeedB(Rect):
 
     def remove(self):
         not_player.remove(self)
-        SmallSpeed.remove(self)
+        BigSpeed.remove(self)
 
 #End Event Class Blocks
         
@@ -379,6 +380,7 @@ class Board(object):
         #Sets levels to prevent unkindly spawns of cover
         rooms[end_point[0]][end_point[1]].level = 0
         rooms[0][0].level = 0
+        #CoverGeneration is here
         for row in rooms:
             for room in row:
                 if room.level > 0 and room.checked == True:
@@ -450,7 +452,7 @@ class Board(object):
 clock = pygame.time.Clock()
 
 window = pygame.display.set_mode([winX,winY])
-camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene
+camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene*****not true anymore technically?
 pygame.display.set_caption("Moving Box")
 
 pygame.display.flip()
@@ -465,7 +467,6 @@ BigSpeed = []
 
 #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
 player = Player((xpos - camera.x,ypos - camera.y), (40,40))
-mob = mob((xpos,ypos), (40,40))
 #room generation:
 rows = randint(1,10)
 collumns = randint(1,10)
@@ -473,6 +474,8 @@ collumns = randint(1,10)
 rows = 2
 collumns = 2
 board = Board(rows, collumns)
+#mobs:
+mob = mob((0,0), (40,40))
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
