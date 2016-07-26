@@ -17,7 +17,7 @@ px=xpos#archaic variables for revision
 py=ypos
 default_speed = 3
 speed = default_speed
-mob_direction = [-1, 0]
+#mob_direction = [-1, 0]
 CLOCK = 60
 
 CameraX = 0#camera start
@@ -130,7 +130,8 @@ class mob(Rect):
     def __init__(self, *args, **kwargs):
         super(mob, self).__init__(*args, **kwargs)
         not_player.append(self)
-        self.color = red
+        self.direction = [-1, 0]
+        self.color = black
 
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
@@ -475,7 +476,7 @@ rows = 2
 collumns = 2
 board = Board(rows, collumns)
 #mobs:
-mob = mob((0,0), (40,40))
+mob = mob((30,11), (40,40))
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
@@ -594,48 +595,49 @@ while True:
         #regenerate a board
 
         ##### mob movement ###
-        if (mob_direction[0] < 0):
-            mob_direction[0] = randint(1, 4)
-    if(mob_direction[0] == 1 or mob_direction[1] == 1): #moving up
+    if (mob.direction[0] < 0):
+            mob.direction[0] = randint(1, 4)
+            mob.direction[1] = randint(1, 4)
+    if(mob.direction[0] == 1 or mob.direction[1] == 1): #moving up
         if(moveRect(mob,0,-speed,*walls)):
             #print "Not Colliding!"
             moveRect(mob,0,+speed)
             #camera.center = mob.center
-            #for obj in not_player:
-             #   moveRect(obj,0,speed)
+            for obj in not_player:
+                moveRect(obj,0,speed)
         else:
-            mob_direction[0] = 2
-            mob_direction[1] = choice([2, 3, 4])
-    if(mob_direction[0] == 2 or mob_direction[1] == 2): #moving down
+            mob.direction[0] = 2
+            mob.direction[1] = choice([2, 3, 4])
+    if(mob.direction[0] == 2 or mob.direction[1] == 2): #moving down
         if(moveRect(mob,0,speed,*walls)):
             #print "Not Colliding!"
             moveRect(mob,0,-speed)
             #camera.center = mob.center
-            #for obj in not_player:
-             #   moveRect(obj,0,-speed)
+            for obj in not_player:
+                moveRect(obj,0,-speed)
         else:
-            mob_direction[0] = 1
-            mob_direction[1] = choice([1, 3, 4])
-    if(mob_direction[0] == 3 or mob_direction[1] == 3): #moving left
+            mob.direction[0] = 1
+            mob.direction[1] = choice([1, 3, 4])
+    if(mob.direction[0] == 3 or mob.direction[1] == 3): #moving left
         if(moveRect(mob,-speed,0,*walls)):
             #print "Not Colliding!"
             moveRect(mob,speed,0)
             #camera.center = mob.center
-            #for obj in not_player:
-             #   moveRect(obj,speed,0)
+            for obj in not_player:
+                moveRect(obj,speed,0)
         else:
-            mob_direction[0] = 4
-            mob_direction[1] = choice([1, 2, 4])
-    if(mob_direction[0] == 4 or mob_direction[1] == 4): #moving right
+            mob.direction[0] = 4
+            mob.direction[1] = choice([1, 2, 4])
+    if(mob.direction[0] == 4 or mob.direction[1] == 4): #moving right
         if(moveRect(mob,speed,0,*walls)):
             #print "Not Colliding!"
             moveRect(mob,-speed,0)
             #camera.center = mob.center
-            #for obj in not_player:
-             #   moveRect(obj,-speed,0)
+            for obj in not_player:
+                moveRect(obj,-speed,0)
         else:
-            mob_direction[0] = 3
-            mob_direction[1] = choice([1, 2, 3])
+            mob.direction[0] = 3
+            mob.direction[1] = choice([1, 2, 3])
         
     for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
         if player.colliderect(event):
