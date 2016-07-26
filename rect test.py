@@ -3,7 +3,7 @@ from pygame.locals import *
 from random import *
 
 """
-First attempt to combine rect_test with mobs.
+One half-mob added to first level. Enjoy
 """
 
 #Initialize pygame
@@ -476,7 +476,7 @@ rows = 2
 collumns = 2
 board = Board(rows, collumns)
 #mobs:
-mob = mob((30,11), (40,40))
+mob = mob((300,11), (40,40))
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
@@ -599,43 +599,19 @@ while True:
             mob.direction[0] = randint(1, 4)
             mob.direction[1] = randint(1, 4)
     if(mob.direction[0] == 1 or mob.direction[1] == 1): #moving up
-        if(moveRect(mob,0,-speed,*walls)):
-            #print "Not Colliding!"
-            moveRect(mob,0,+speed)
-            #camera.center = mob.center
-            for obj in not_player:
-                moveRect(obj,0,speed)
-        else:
+        if(not moveRect(mob,0,-speed,*walls)):
             mob.direction[0] = 2
             mob.direction[1] = choice([2, 3, 4])
     if(mob.direction[0] == 2 or mob.direction[1] == 2): #moving down
-        if(moveRect(mob,0,speed,*walls)):
-            #print "Not Colliding!"
-            moveRect(mob,0,-speed)
-            #camera.center = mob.center
-            for obj in not_player:
-                moveRect(obj,0,-speed)
-        else:
+        if(not moveRect(mob,0,speed,*walls)):
             mob.direction[0] = 1
             mob.direction[1] = choice([1, 3, 4])
     if(mob.direction[0] == 3 or mob.direction[1] == 3): #moving left
-        if(moveRect(mob,-speed,0,*walls)):
-            #print "Not Colliding!"
-            moveRect(mob,speed,0)
-            #camera.center = mob.center
-            for obj in not_player:
-                moveRect(obj,speed,0)
-        else:
+        if(not moveRect(mob,-speed,0,*walls)):
             mob.direction[0] = 4
             mob.direction[1] = choice([1, 2, 4])
     if(mob.direction[0] == 4 or mob.direction[1] == 4): #moving right
-        if(moveRect(mob,speed,0,*walls)):
-            #print "Not Colliding!"
-            moveRect(mob,-speed,0)
-            #camera.center = mob.center
-            for obj in not_player:
-                moveRect(obj,-speed,0)
-        else:
+        if(not moveRect(mob,speed,0,*walls)):
             mob.direction[0] = 3
             mob.direction[1] = choice([1, 2, 3])
         
