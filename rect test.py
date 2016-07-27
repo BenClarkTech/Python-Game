@@ -300,7 +300,7 @@ class Room(object):
     def GetMobs(self):
         decide = 1#randint(0, 1)
         if decide == 1:
-            self.Mobs.append(mob((self.x+150,self.y+100), (40,40)))
+            Mobs.append(mob((self.x+150,self.y+100), (40,40)))
             
 
 class Board(object):
