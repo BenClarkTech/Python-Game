@@ -125,10 +125,12 @@ class Player(Rect):
     def __init__(self, *args, **kwargs):
         super(Player, self).__init__(*args, **kwargs)
         self.color = player_blue
+        self.health = 3
+        self.damage_cd = 0
 
-class mob(Rect):
+class Mob(Rect):
     def __init__(self, *args, **kwargs):
-        super(mob, self).__init__(*args, **kwargs)
+        super(Mob, self).__init__(*args, **kwargs)
         not_player.append(self)
         Mobs.append(self)
         self.direction = [-1, 0]
@@ -139,29 +141,29 @@ class mob(Rect):
 
     def remove(self):
         not_player.remove(self)
-        walls.remove(self)
+        Mobs.remove(self)
 
     def move(self):
         ##### mob movement ###
-        if (mob.direction[0] < 0):
-            mob.direction[0] = randint(1, 4)
-            mob.direction[1] = randint(1, 4)
-        if(mob.direction[0] == 1 or mob.direction[1] == 1): #moving up
-            if(not moveRect(mob,0,-speed,*walls)):
-                mob.direction[0] = 2
-                mob.direction[1] = choice([2, 3, 4])
-        if(mob.direction[0] == 2 or mob.direction[1] == 2): #moving down
-            if(not moveRect(mob,0,speed,*walls)):
-                mob.direction[0] = 1
-                mob.direction[1] = choice([1, 3, 4])
-        if(mob.direction[0] == 3 or mob.direction[1] == 3): #moving left
-            if(not moveRect(mob,-speed,0,*walls)):
-                mob.direction[0] = 4
-                mob.direction[1] = choice([1, 2, 4])
-        if(mob.direction[0] == 4 or mob.direction[1] == 4): #moving right
-            if(not moveRect(mob,speed,0,*walls)):
-                mob.direction[0] = 3
-                mob.direction[1] = choice([1, 2, 3])
+        if (self.direction[0] < 0):
+            self.direction[0] = randint(1, 4)
+            self.direction[1] = randint(1, 4)
+        if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
+            if(not moveRect(self,0,-speed,*walls)):
+                self.direction[0] = 2
+                self.direction[1] = choice([2, 3, 4])
+        if(self.direction[0] == 2 or self.direction[1] == 2): #moving down
+            if(not moveRect(self,0,speed,*walls)):
+                self.direction[0] = 1
+                self.direction[1] = choice([1, 3, 4])
+        if(self.direction[0] == 3 or self.direction[1] == 3): #moving left
+            if(not moveRect(self,-speed,0,*walls)):
+                self.direction[0] = 4
+                self.direction[1] = choice([1, 2, 4])
+        if(self.direction[0] == 4 or self.direction[1] == 4): #moving right
+            if(not moveRect(self,speed,0,*walls)):
+                self.direction[0] = 3
+                self.direction[1] = choice([1, 2, 3])
 
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
@@ -276,7 +278,7 @@ class Room(object):
             floor.remove()
         for wall in self.Walls:
             wall.remove()
-
+        
     def GetCover(self):
         covers = 3
         cover_model = randint(0,covers)
@@ -300,7 +302,7 @@ class Room(object):
     def GetMobs(self):
         decide = 1#randint(0, 1)
         if decide == 1:
-            Mobs.append(mob((self.x+150,self.y+100), (40,40)))
+            Mobs.append(Mob((self.x+150,self.y+100), (40,40)))
             
 
 class Board(object):
@@ -422,6 +424,7 @@ class Board(object):
             for room in row:
                 if room.level > 0 and room.checked == True:
                     room.GetCover()
+                    print "Mob got."
                     room.GetMobs()
                     
                     
@@ -456,6 +459,7 @@ class Board(object):
         del walls[:]
         del not_player[:]
         del self.rooms[:]
+        del Mobs[:]
 
     def remake(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20, level_up = 0):
         self.rows = rows
@@ -580,6 +584,8 @@ while True:
     clock.tick(CLOCK)
     if timer != 0:
         timer -= 1
+    if player.damage_cd != 0:
+        player.damage_cd -= 1
     else:
         speed = default_speed
     for event in pygame.event.get():
@@ -635,10 +641,12 @@ while True:
         #move player to start position
         #regenerate a board
 
-        ##### mob movement ###
+        ##### mob movement && damage###
     for mob in Mobs:
             mob.move()
-        
+            if player.colliderect(mob) and player.damage_cd == 0:
+                player.health -= 1
+                player.damage_cd = 2 * 60
     for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
         if player.colliderect(event):
                 speed = default_speed+3
@@ -687,10 +695,17 @@ while True:
     textpos = text.get_rect()
     textpos.topright = camera.topright
     window.blit(text,textpos)
-    
+    text = subhead.render(str(player.health), 1, red)
+    textpos = text.get_rect()
+    textpos.topleft = camera.topleft
+    window.blit(text,textpos)
+
 #What's better, .update() or .flip()?
     pygame.display.update()
 
+    if player.health == 0:
+        break
+    
 class myRect(pygame.rect):
     def __init__(self, *args, **kwargs):
         super(myRect, self).__init__(*args, **kwargs)
