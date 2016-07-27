@@ -133,6 +133,32 @@ class mob(Rect):
         self.direction = [-1, 0]
         self.color = black
 
+    def remove(self):
+        not_player.remove(self)
+        walls.remove(self)
+
+    def move(self):
+        ##### mob movement ###
+        if (mob.direction[0] < 0):
+            mob.direction[0] = randint(1, 4)
+            mob.direction[1] = randint(1, 4)
+        if(mob.direction[0] == 1 or mob.direction[1] == 1): #moving up
+            if(not moveRect(mob,0,-speed,*walls)):
+                mob.direction[0] = 2
+                mob.direction[1] = choice([2, 3, 4])
+        if(mob.direction[0] == 2 or mob.direction[1] == 2): #moving down
+            if(not moveRect(mob,0,speed,*walls)):
+                mob.direction[0] = 1
+                mob.direction[1] = choice([1, 3, 4])
+        if(mob.direction[0] == 3 or mob.direction[1] == 3): #moving left
+            if(not moveRect(mob,-speed,0,*walls)):
+                mob.direction[0] = 4
+                mob.direction[1] = choice([1, 2, 4])
+        if(mob.direction[0] == 4 or mob.direction[1] == 4): #moving right
+            if(not moveRect(mob,speed,0,*walls)):
+                mob.direction[0] = 3
+                mob.direction[1] = choice([1, 2, 3])
+
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
         super(EndGoal, self).__init__(*args,**kwargs)
@@ -200,6 +226,7 @@ class Room(object):
         self.Floors = []
         self.Floors.append(Env((self.x,self.y),(self.w,self.h)))
         self.Walls = []
+        self.Mobs = []
         if self.N:
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
             self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
@@ -267,6 +294,11 @@ class Room(object):
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
 
+    def GetMobs(self):
+        decide = randint(0, 1)
+        if decide == 1:
+            self.Mobs.append(mob((self.x+150,self.y+100), (40,40)))
+
 
 class Board(object):
     def __init__(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20):
@@ -280,6 +312,7 @@ class Board(object):
         self.goal = None
         self.level = 0
         self.rooms = []
+        self.mobs = []
         self.generate()
         
     def generate(self):
@@ -386,6 +419,8 @@ class Board(object):
             for room in row:
                 if room.level > 0 and room.checked == True:
                     room.GetCover()
+                    room.GetMobs()
+                    
         #EventGeneration goes here !!!Read instructions before adding event located near the event class block!!!
         for row in rooms:
             for room in row:
@@ -595,25 +630,8 @@ while True:
         #regenerate a board
 
         ##### mob movement ###
-    if (mob.direction[0] < 0):
-            mob.direction[0] = randint(1, 4)
-            mob.direction[1] = randint(1, 4)
-    if(mob.direction[0] == 1 or mob.direction[1] == 1): #moving up
-        if(not moveRect(mob,0,-speed,*walls)):
-            mob.direction[0] = 2
-            mob.direction[1] = choice([2, 3, 4])
-    if(mob.direction[0] == 2 or mob.direction[1] == 2): #moving down
-        if(not moveRect(mob,0,speed,*walls)):
-            mob.direction[0] = 1
-            mob.direction[1] = choice([1, 3, 4])
-    if(mob.direction[0] == 3 or mob.direction[1] == 3): #moving left
-        if(not moveRect(mob,-speed,0,*walls)):
-            mob.direction[0] = 4
-            mob.direction[1] = choice([1, 2, 4])
-    if(mob.direction[0] == 4 or mob.direction[1] == 4): #moving right
-        if(not moveRect(mob,speed,0,*walls)):
-            mob.direction[0] = 3
-            mob.direction[1] = choice([1, 2, 3])
+    for mob in room.Mobs:
+        mob.move()
         
     for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
         if player.colliderect(event):
