@@ -19,6 +19,7 @@ default_speed = 3
 speed = default_speed
 #mob_direction = [-1, 0]
 CLOCK = 60
+timer = 0
 
 CameraX = 0#camera start
 CameraY = 0
@@ -214,17 +215,6 @@ class SpeedB(Rect):
 
 #End Event Class Blocks
         
-"""class SampleSprite(pygame.sprite.Sprite): #Example of sprites - this allows sprite groups <<<NOT BEING USED IN THIS PROJECT
-    def __init__(self, color=light_green, x=-100, y=-100, player = None, *args, **kwargs):
-        super(SampleSprite, self).__init__(*args, **kwargs)
-        self.image = pygame.Surface([100,100])
-        self.image.fill(color)
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-        self.env = Env(rec = self.rect)
-        self.env.color = color"""
-        
 class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
     def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32,level = 0):
@@ -387,38 +377,17 @@ class Board(object):
                 #Theory: No room will be unaccessable with this code.
                 room_layout = (N,S,E,W)
                 row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
-            """  #NEWCONECPT: Check passable if not remove the lock
-            test = False
-            if i != self.collumns - 1:
-                for room in row:
-                    if room.S == True:
-                        test = True
-            if test == False:
-                print "Horizontal Lock Adjusted"
-                rand = randint(0,len(row)-1)
-                row[rand].S == True"""
+
             rooms.append(row)#not part of newconcept
             row = []#not part of newconcept
-        """ test = False
-        for y in range(0,self.collumns-1):
-            for x in range(0,self.rows):
-                room = rooms[x][y]
-                if room.E == True:
-                    test = True
-            if test == False:
-                print "Vertical Lock Adjusted"
-                rand = randint(0,len(rooms) - 1)
-                print rand
-                rooms[rand][y].E = True
-                rooms[rand-1][y].W = True\
-        #END NEWCONCEPT"""
+
         #checker to get all passable terrain
         self.rooms = rooms
         self.checker(0,0);
         #Would be nice to implement a gating mechanism which opens if the room is completed.
         #pick a room to set the endpoint in
         end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1) #Endpoint is some random room on the board.
-        while (end_point == (0,0) and collumns != 0 and rows != 0) or rooms[end_point[0]][end_point[1]].checked != True: 
+        while (end_point == (0,0) and self.collumns != 0 and self.rows != 0) or rooms[end_point[0]][end_point[1]].checked != True: 
             end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
         #creates the end point
         self.goal = EndGoal((0,0),(40,40))
@@ -510,17 +479,18 @@ pygame.display.set_caption("Moving Box")
 
 pygame.display.flip()
 
-timer = 0
+
 
 
 def game_loop():                                          
     #Array Initialization
-    Mobs = []
+    speed = default_speed
+    """Mobs = []
     walls = []
     not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
     SmallSpeed = []
-    BigSpeed = []
-
+    BigSpeed = []"""
+    timer = 0
     #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
     player = Player((xpos - camera.x,ypos - camera.y), (40,40))
     #room generation:
@@ -542,60 +512,13 @@ def game_loop():
     subtitle = pygame.font.Font(None, 220)
     title = pygame.font.Font(None, 288)
 
-    #adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
-    #walls.append(rect1)
-    #not_player.append(rect1)
-    #not_player.append(floor)
-    #not_player.append(floor2)
-
-    #saved code from initial movement structure
-        
-    """    if(pygame.key.get_pressed()[K_UP]):
-            py = ypos
-            ypos = ypos - speed
-            cY = CameraY
-            CameraY = CameraY - speed
-        if(pygame.key.get_pressed()[K_DOWN]):
-            py = ypos
-            ypos = ypos + speed
-            cY = CameraY
-            CameraY = CameraY + speed
-        if(pygame.key.get_pressed()[K_LEFT]):
-            px = xpos
-            xpos = xpos - speed
-            cX = CameraX
-            CameraX = CameraX - speed
-        if(pygame.key.get_pressed()[K_RIGHT]):
-            px = xpos
-            xpos = xpos + speed
-            cX = CameraX
-            CameraX = CameraX + speed"""
-
-    #saved code from initial collision detecter
-
-
-    """    if rect1.colliderect(rect2): #emplement this as a for loop for the future
-            xpos = px
-            ypos = py
-            CameraX = cX
-            CameraY = cY
-            rect1.x = 100-CameraX
-            rect1.y = 300-CameraY
-            rect2.x = xpos - CameraX
-            rect2.y = ypos - CameraY
-            floor.x = 0-CameraX
-            floor.y = 0-CameraY """
-        
-    #possibly create a velocity pair which is edited in the controller, which will consolidate velocity
-    #emplemented camera following with more robust movement detection preventing corner catching, etc.
-    #NOTE: haven't reemplemented border collision yet. Can do "Not Colliding With Floor" possibly
-    #Alternatively, make walls using rectangles included in a list of impassible objects <<<This method has been emplemented.
     while True:
         clock.tick(CLOCK)
-        if timer != 0:
-            timer -= 1
+        print speed
         if player.damage_cd != 0:
             player.damage_cd -= 1
+        if timer != 0:
+            timer -= 1
         else:
             speed = default_speed
         for event in pygame.event.get():
@@ -659,32 +582,14 @@ def game_loop():
                     player.damage_cd = 2 * 60
         for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
             if player.colliderect(event):
+                    print "You should get BIGSPEED"
                     speed = default_speed+3
                     timer = 10 * CLOCK
         for event in SmallSpeed:
             if player.colliderect(event):
+                    print "You should get tinehsped"
                     speed = default_speed+1
                     timer = 10 * CLOCK
-    #    roomBounds = getBounds(floor)
-    #   below is old border management
-        """if xpos < 0:
-            xpos = px
-            CameraX = cX
-     #       print "Hit Left."
-        if ypos < 0:
-            ypos = py
-            CameraY = cY
-     #       print "Hit Top."
-        if xpos > 600:
-            xpos = px
-            CameraX = cX
-     #       print "Hit Right."
-        if ypos > 560:
-            ypos = py
-            CameraY = cY"""
-     #       print "Hit Bottom."
-     #   camera.x = CameraX
-     #   camera.y = CameraY
 
     #Painting of scene:
         window.fill(bg_gray)
