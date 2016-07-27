@@ -149,19 +149,19 @@ class Mob(Rect):
             self.direction[0] = randint(1, 4)
             self.direction[1] = randint(1, 4)
         if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
-            if(not moveRect(self,0,-speed,*walls)):
+            if(not moveRect(self,0,-default_speed,*walls)):
                 self.direction[0] = 2
                 self.direction[1] = choice([2, 3, 4])
         if(self.direction[0] == 2 or self.direction[1] == 2): #moving down
-            if(not moveRect(self,0,speed,*walls)):
+            if(not moveRect(self,0,default_speed,*walls)):
                 self.direction[0] = 1
                 self.direction[1] = choice([1, 3, 4])
         if(self.direction[0] == 3 or self.direction[1] == 3): #moving left
-            if(not moveRect(self,-speed,0,*walls)):
+            if(not moveRect(self,-default_speed,0,*walls)):
                 self.direction[0] = 4
                 self.direction[1] = choice([1, 2, 4])
         if(self.direction[0] == 4 or self.direction[1] == 4): #moving right
-            if(not moveRect(self,speed,0,*walls)):
+            if(not moveRect(self,default_speed,0,*walls)):
                 self.direction[0] = 3
                 self.direction[1] = choice([1, 2, 3])
 
