@@ -517,7 +517,7 @@ rows = 2
 collumns = 2
 board = Board(rows, collumns)
 #mobs:
-mob = mob((300,11), (40,40))
+#mob = mob((300,11), (40,40))
 #centers camera at start
 player.center = camera.center#comment out to allow skewed camera
 
