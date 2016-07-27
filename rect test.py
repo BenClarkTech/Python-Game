@@ -133,7 +133,7 @@ class Mob(Rect):
         super(Mob, self).__init__(*args, **kwargs)
         not_player.append(self)
         Mobs.append(self)
-        self.direction = [-1, 0]
+        self.direction = [randint(1,4),0]
         self.color = black
 
     #def __call__(self, *args, **kwargs):
@@ -145,9 +145,6 @@ class Mob(Rect):
 
     def move(self):
         ##### mob movement ###
-        if (self.direction[0] < 0 or self.direction[0] > 4 or self.direction[1] < 0 or self.direction[1] > 4):
-            self.direction[0] = randint(1, 4)
-            self.direction[1] = randint(1, 4)
         if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
             if(not moveRect(self,0,-default_speed,*walls)):
                 self.direction[0] = 2
