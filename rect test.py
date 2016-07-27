@@ -40,8 +40,20 @@ player_blue = (100,200,250)
 bg_gray = (19,19,19)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
+
+#
+#Array Initialization
+Mobs = []
+walls = []
+not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
+SmallSpeed = []
+BigSpeed = []
+
+
 #End Constand Definition
 #Begin Function Definition
+
+
 def getBounds(rec):
     """Takes in a rectangle and returns a list of the various bounds.
     [0] is x left bound, [1] is x right bound, [2] is y top bound
@@ -500,212 +512,212 @@ pygame.display.flip()
 
 timer = 0
 
-Mobs = []
-                                          
-#Array Initialization
-walls = []
-not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
-SmallSpeed = []
-BigSpeed = []
 
-#rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
-player = Player((xpos - camera.x,ypos - camera.y), (40,40))
-#room generation:
-rows = randint(1,10)
-collumns = randint(1,10)
+def game_loop():                                          
+    #Array Initialization
+    Mobs = []
+    walls = []
+    not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
+    SmallSpeed = []
+    BigSpeed = []
 
-rows = 2
-collumns = 2
-board = Board(rows, collumns)
-#mobs:
-#mob = mob((300,11), (40,40))
-#centers camera at start
-player.center = camera.center#comment out to allow skewed camera
+    #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
+    player = Player((xpos - camera.x,ypos - camera.y), (40,40))
+    #room generation:
+    rows = randint(1,10)
+    collumns = randint(1,10)
 
-#text initialization:
-body = pygame.font.Font(None, 36)
-subhead = pygame.font.Font(None, 72)
-header = pygame.font.Font(None, 144)
-subtitle = pygame.font.Font(None, 220)
-title = pygame.font.Font(None, 288)
+    rows = 2
+    collumns = 2
+    board = Board(rows, collumns)
+    #mobs:
+    #mob = mob((300,11), (40,40))
+    #centers camera at start
+    player.center = camera.center#comment out to allow skewed camera
 
-#adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
-#walls.append(rect1)
-#not_player.append(rect1)
-#not_player.append(floor)
-#not_player.append(floor2)
+    #text initialization:
+    body = pygame.font.Font(None, 36)
+    subhead = pygame.font.Font(None, 72)
+    header = pygame.font.Font(None, 144)
+    subtitle = pygame.font.Font(None, 220)
+    title = pygame.font.Font(None, 288)
 
-#saved code from initial movement structure
-    
-"""    if(pygame.key.get_pressed()[K_UP]):
-        py = ypos
-        ypos = ypos - speed
-        cY = CameraY
-        CameraY = CameraY - speed
-    if(pygame.key.get_pressed()[K_DOWN]):
-        py = ypos
-        ypos = ypos + speed
-        cY = CameraY
-        CameraY = CameraY + speed
-    if(pygame.key.get_pressed()[K_LEFT]):
-        px = xpos
-        xpos = xpos - speed
-        cX = CameraX
-        CameraX = CameraX - speed
-    if(pygame.key.get_pressed()[K_RIGHT]):
-        px = xpos
-        xpos = xpos + speed
-        cX = CameraX
-        CameraX = CameraX + speed"""
+    #adds to appropriate lists !!!could make a walls class and an environment class which does this in constructor <<<Class Made>>>
+    #walls.append(rect1)
+    #not_player.append(rect1)
+    #not_player.append(floor)
+    #not_player.append(floor2)
 
-#saved code from initial collision detecter
-
-
-"""    if rect1.colliderect(rect2): #emplement this as a for loop for the future
-        xpos = px
-        ypos = py
-        CameraX = cX
-        CameraY = cY
-        rect1.x = 100-CameraX
-        rect1.y = 300-CameraY
-        rect2.x = xpos - CameraX
-        rect2.y = ypos - CameraY
-        floor.x = 0-CameraX
-        floor.y = 0-CameraY """
-    
-#possibly create a velocity pair which is edited in the controller, which will consolidate velocity
-#emplemented camera following with more robust movement detection preventing corner catching, etc.
-#NOTE: haven't reemplemented border collision yet. Can do "Not Colliding With Floor" possibly
-#Alternatively, make walls using rectangles included in a list of impassible objects <<<This method has been emplemented.
-while True:
-    clock.tick(CLOCK)
-    if timer != 0:
-        timer -= 1
-    if player.damage_cd != 0:
-        player.damage_cd -= 1
-    else:
-        speed = default_speed
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == K_SPACE:
-                if color == purple:
-                  color = red
-                else:
-                    color = purple
-    if(pygame.key.get_pressed()[K_UP]):
-        if(moveRect(player,0,-speed,*walls)):
-            #print "Not Colliding!"
-            moveRect(player,0,+speed)
-            camera.center = player.center
-            for obj in not_player:
-                moveRect(obj,0,speed)
-    if(pygame.key.get_pressed()[K_DOWN]):
-        if(moveRect(player,0,speed,*walls)):
-            #print "Not Colliding!"
-            moveRect(player,0,-speed)
-            camera.center = player.center
-            for obj in not_player:
-                moveRect(obj,0,-speed)
-    if(pygame.key.get_pressed()[K_LEFT]):
-        if(moveRect(player,-speed,0,*walls)):
-            #print "Not Colliding!"
-            moveRect(player,speed,0)
-            camera.center = player.center
-            for obj in not_player:
-                moveRect(obj,speed,0)
-    if(pygame.key.get_pressed()[K_RIGHT]):
-        if(moveRect(player,speed,0,*walls)):
-            #print "Not Colliding!"
-            moveRect(player,-speed,0)
-            camera.center = player.center
-            for obj in not_player:
-                moveRect(obj,-speed,0)
-    if player.colliderect(board.goal):
-        #print "next board"
-        board.wash_board()
-        #print walls
-        rows = randint(1,4)
-        collumns = randint(1,4)
-        board.remake(rows,collumns,level_up = 1)
-        player.x = xpos
-        player.y = ypos
-        camera.center = player.center
-        #Show levelup screen possibly with something like [space] to continue
-        #clear board
-        #increment level counter
-        #move player to start position
-        #regenerate a board
-
-        ##### mob movement && damage###
-    for mob in Mobs:
-            mob.move()
-            if player.colliderect(mob) and player.damage_cd == 0:
-                player.health -= 1
-                player.damage_cd = 2 * 60
-    for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
-        if player.colliderect(event):
-                speed = default_speed+3
-                timer = 10 * CLOCK
-    for event in SmallSpeed:
-        if player.colliderect(event):
-                speed = default_speed+1
-                timer = 10 * CLOCK
-#    roomBounds = getBounds(floor)
-#   below is old border management
-    """if xpos < 0:
-        xpos = px
-        CameraX = cX
- #       print "Hit Left."
-    if ypos < 0:
-        ypos = py
-        CameraY = cY
- #       print "Hit Top."
-    if xpos > 600:
-        xpos = px
-        CameraX = cX
- #       print "Hit Right."
-    if ypos > 560:
-        ypos = py
-        CameraY = cY"""
- #       print "Hit Bottom."
- #   camera.x = CameraX
- #   camera.y = CameraY
-
-#Painting of scene:
-    window.fill(bg_gray)
-    for obj in not_player:
-        pygame.draw.rect(window, obj.color, obj)
+    #saved code from initial movement structure
         
-    pygame.draw.rect(window, player.color, player)
+    """    if(pygame.key.get_pressed()[K_UP]):
+            py = ypos
+            ypos = ypos - speed
+            cY = CameraY
+            CameraY = CameraY - speed
+        if(pygame.key.get_pressed()[K_DOWN]):
+            py = ypos
+            ypos = ypos + speed
+            cY = CameraY
+            CameraY = CameraY + speed
+        if(pygame.key.get_pressed()[K_LEFT]):
+            px = xpos
+            xpos = xpos - speed
+            cX = CameraX
+            CameraX = CameraX - speed
+        if(pygame.key.get_pressed()[K_RIGHT]):
+            px = xpos
+            xpos = xpos + speed
+            cX = CameraX
+            CameraX = CameraX + speed"""
 
-#Paint Text:
-    for row in board.rooms:#This loop paints all the room levels
-        for room in row:
-            if room.checked:
-                text = body.render(str(room.level), 1, (10,10,10))
-                textpos = text.get_rect()
-                textpos.center = room.Floors[0].center
-                window.blit(text,textpos)
-    text = subhead.render(str(board.level), 1, cement)
-    textpos = text.get_rect()
-    textpos.topright = camera.topright
-    window.blit(text,textpos)
-    text = subhead.render(str(player.health), 1, red)
-    textpos = text.get_rect()
-    textpos.topleft = camera.topleft
-    window.blit(text,textpos)
+    #saved code from initial collision detecter
 
-#What's better, .update() or .flip()?
-    pygame.display.update()
 
-    if player.health == 0:
-        break
+    """    if rect1.colliderect(rect2): #emplement this as a for loop for the future
+            xpos = px
+            ypos = py
+            CameraX = cX
+            CameraY = cY
+            rect1.x = 100-CameraX
+            rect1.y = 300-CameraY
+            rect2.x = xpos - CameraX
+            rect2.y = ypos - CameraY
+            floor.x = 0-CameraX
+            floor.y = 0-CameraY """
+        
+    #possibly create a velocity pair which is edited in the controller, which will consolidate velocity
+    #emplemented camera following with more robust movement detection preventing corner catching, etc.
+    #NOTE: haven't reemplemented border collision yet. Can do "Not Colliding With Floor" possibly
+    #Alternatively, make walls using rectangles included in a list of impassible objects <<<This method has been emplemented.
+    while True:
+        clock.tick(CLOCK)
+        if timer != 0:
+            timer -= 1
+        if player.damage_cd != 0:
+            player.damage_cd -= 1
+        else:
+            speed = default_speed
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == K_SPACE:
+                    if color == purple:
+                      color = red
+                    else:
+                        color = purple
+        if(pygame.key.get_pressed()[K_UP]):
+            if(moveRect(player,0,-speed,*walls)):
+                #print "Not Colliding!"
+                moveRect(player,0,+speed)
+                camera.center = player.center
+                for obj in not_player:
+                    moveRect(obj,0,speed)
+        if(pygame.key.get_pressed()[K_DOWN]):
+            if(moveRect(player,0,speed,*walls)):
+                #print "Not Colliding!"
+                moveRect(player,0,-speed)
+                camera.center = player.center
+                for obj in not_player:
+                    moveRect(obj,0,-speed)
+        if(pygame.key.get_pressed()[K_LEFT]):
+            if(moveRect(player,-speed,0,*walls)):
+                #print "Not Colliding!"
+                moveRect(player,speed,0)
+                camera.center = player.center
+                for obj in not_player:
+                    moveRect(obj,speed,0)
+        if(pygame.key.get_pressed()[K_RIGHT]):
+            if(moveRect(player,speed,0,*walls)):
+                #print "Not Colliding!"
+                moveRect(player,-speed,0)
+                camera.center = player.center
+                for obj in not_player:
+                    moveRect(obj,-speed,0)
+        if player.colliderect(board.goal):
+            #print "next board"
+            board.wash_board()
+            #print walls
+            rows = randint(1,4)
+            collumns = randint(1,4)
+            board.remake(rows,collumns,level_up = 1)
+            player.x = xpos
+            player.y = ypos
+            camera.center = player.center
+            #Show levelup screen possibly with something like [space] to continue
+            #clear board
+            #increment level counter
+            #move player to start position
+            #regenerate a board
+
+            ##### mob movement && damage###
+        for mob in Mobs:
+                mob.move()
+                if player.colliderect(mob) and player.damage_cd == 0:
+                    player.health -= 1
+                    player.damage_cd = 2 * 60
+        for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
+            if player.colliderect(event):
+                    speed = default_speed+3
+                    timer = 10 * CLOCK
+        for event in SmallSpeed:
+            if player.colliderect(event):
+                    speed = default_speed+1
+                    timer = 10 * CLOCK
+    #    roomBounds = getBounds(floor)
+    #   below is old border management
+        """if xpos < 0:
+            xpos = px
+            CameraX = cX
+     #       print "Hit Left."
+        if ypos < 0:
+            ypos = py
+            CameraY = cY
+     #       print "Hit Top."
+        if xpos > 600:
+            xpos = px
+            CameraX = cX
+     #       print "Hit Right."
+        if ypos > 560:
+            ypos = py
+            CameraY = cY"""
+     #       print "Hit Bottom."
+     #   camera.x = CameraX
+     #   camera.y = CameraY
+
+    #Painting of scene:
+        window.fill(bg_gray)
+        for obj in not_player:
+            pygame.draw.rect(window, obj.color, obj)
+            
+        pygame.draw.rect(window, player.color, player)
+
+    #Paint Text:
+        for row in board.rooms:#This loop paints all the room levels
+            for room in row:
+                if room.checked:
+                    text = body.render(str(room.level), 1, (10,10,10))
+                    textpos = text.get_rect()
+                    textpos.center = room.Floors[0].center
+                    window.blit(text,textpos)
+        text = subhead.render(str(board.level), 1, cement)
+        textpos = text.get_rect()
+        textpos.topright = camera.topright
+        window.blit(text,textpos)
+        text = subhead.render(str(player.health), 1, red)
+        textpos = text.get_rect()
+        textpos.topleft = camera.topleft
+        window.blit(text,textpos)
+
+    #What's better, .update() or .flip()?
+        pygame.display.update()
+
+        if player.health == 0:
+            break
     
-class myRect(pygame.rect):
-    def __init__(self, *args, **kwargs):
-        super(myRect, self).__init__(*args, **kwargs)
+if __name__ == "__main__":
+    game_loop()
 
 
 #If the player is colliding with a zone, outlined by rectangles
