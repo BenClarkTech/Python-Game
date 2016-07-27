@@ -514,7 +514,7 @@ def game_loop():
 
     while True:
         clock.tick(CLOCK)
-        print speed
+        #print speed
         if player.damage_cd != 0:
             player.damage_cd -= 1
         if timer != 0:
