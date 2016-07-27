@@ -145,7 +145,7 @@ class Mob(Rect):
 
     def move(self):
         ##### mob movement ###
-        if (self.direction[0] < 0):
+        if (self.direction[0] < 0 or self.direction[0] > 4):
             self.direction[0] = randint(1, 4)
             self.direction[1] = randint(1, 4)
         if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
