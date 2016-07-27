@@ -130,8 +130,12 @@ class mob(Rect):
     def __init__(self, *args, **kwargs):
         super(mob, self).__init__(*args, **kwargs)
         not_player.append(self)
+        Mobs.append(self)
         self.direction = [-1, 0]
         self.color = black
+
+    #def __call__(self, *args, **kwargs):
+    #    return mob.__init__(self, *args, **kwargs)
 
     def remove(self):
         not_player.remove(self)
@@ -226,7 +230,6 @@ class Room(object):
         self.Floors = []
         self.Floors.append(Env((self.x,self.y),(self.w,self.h)))
         self.Walls = []
-        self.Mobs = []
         if self.N:
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
             self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
@@ -295,10 +298,10 @@ class Room(object):
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
 
     def GetMobs(self):
-        decide = randint(0, 1)
+        decide = 1#randint(0, 1)
         if decide == 1:
             self.Mobs.append(mob((self.x+150,self.y+100), (40,40)))
-
+            
 
 class Board(object):
     def __init__(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20):
@@ -421,6 +424,7 @@ class Board(object):
                     room.GetCover()
                     room.GetMobs()
                     
+                    
         #EventGeneration goes here !!!Read instructions before adding event located near the event class block!!!
         for row in rooms:
             for room in row:
@@ -494,6 +498,8 @@ pygame.display.set_caption("Moving Box")
 pygame.display.flip()
 
 timer = 0
+
+Mobs = []
                                           
 #Array Initialization
 walls = []
@@ -630,8 +636,8 @@ while True:
         #regenerate a board
 
         ##### mob movement ###
-    for mob in room.Mobs:
-        mob.move()
+    for mob in Mobs:
+            mob.move()
         
     for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
         if player.colliderect(event):
