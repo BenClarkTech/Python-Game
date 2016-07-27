@@ -317,7 +317,7 @@ class Board(object):
         self.goal = None
         self.level = 0
         self.rooms = []
-        self.mobs = []
+        #self.mobs = []
         self.generate()
         
     def generate(self):
