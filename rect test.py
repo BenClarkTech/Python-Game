@@ -1,4 +1,5 @@
 import pygame
+import time
 from pygame.locals import *
 from random import *
 
@@ -39,6 +40,9 @@ blue = (92,172,239)
 dark_gray = (71,71,71)
 player_blue = (100,200,250)
 bg_gray = (19,19,19)
+orange = (255,140,0)
+white = (255,255,255)
+light_blue = (200,200,255)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
 
@@ -142,12 +146,13 @@ class Player(Rect):
         self.damage_cd = 0
 
 class Mob(Rect):
-    def __init__(self, *args, **kwargs):
-        super(Mob, self).__init__(*args, **kwargs)
+    def __init__(self, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
+        super(Mob, self).__init__((x,y),(w,h),*args, **kwargs)
         not_player.append(self)
         Mobs.append(self)
         self.direction = [randint(1,4),0]
         self.color = black
+        self.speed = default_speed * .5 * speed_scale
 
     #def __call__(self, *args, **kwargs):
     #    return mob.__init__(self, *args, **kwargs)
@@ -159,19 +164,19 @@ class Mob(Rect):
     def move(self):
         ##### mob movement ###
         if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
-            if(not moveRect(self,0,-default_speed,*walls)):
+            if(not moveRect(self,0,-self.speed,*walls)):
                 self.direction[0] = 2
                 self.direction[1] = choice([2, 3, 4])
         if(self.direction[0] == 2 or self.direction[1] == 2): #moving down
-            if(not moveRect(self,0,default_speed,*walls)):
+            if(not moveRect(self,0,self.speed,*walls)):
                 self.direction[0] = 1
                 self.direction[1] = choice([1, 3, 4])
         if(self.direction[0] == 3 or self.direction[1] == 3): #moving left
-            if(not moveRect(self,-default_speed,0,*walls)):
+            if(not moveRect(self,-self.speed,0,*walls)):
                 self.direction[0] = 4
                 self.direction[1] = choice([1, 2, 4])
         if(self.direction[0] == 4 or self.direction[1] == 4): #moving right
-            if(not moveRect(self,default_speed,0,*walls)):
+            if(not moveRect(self,self.speed,0,*walls)):
                 self.direction[0] = 3
                 self.direction[1] = choice([1, 2, 3])
 
@@ -226,7 +231,7 @@ class Room(object):
         (self.x,self.y) = position
         (self.w,self.h) = size
         (self.N,self.S,self.E,self.W) = doors
-        self.floor_color = floor_color
+        self.floor_color = (randint(0,255),randint(0,255),randint(0,255))#floor_color
         self.wall_color = wall_color
         self.Floors = []
         self.Floors.append(Env((self.x,self.y),(self.w,self.h)))
@@ -301,7 +306,8 @@ class Room(object):
     def GetMobs(self):
         decide = 1#randint(0, 1)
         if decide == 1:
-            Mobs.append(Mob((self.x+150,self.y+100), (40,40)))
+            ran = randint(0,15)
+            Mobs.append(Mob((self.x+150,self.y+100), (30 + ran,30 + ran), 1 + self.level/5))
             
 
 class Board(object):
@@ -453,7 +459,7 @@ class Board(object):
 
     def checker(self,x,y):
         self.rooms[x][y].checked = True
-        self.rooms[x][y].SetFloor(chocolate)
+        #self.rooms[x][y].SetFloor(chocolate)
         #print str(x)+" "+str(y)
         if self.rooms[x][y].N:
             if self.rooms[x][y-1].checked == False:
@@ -475,11 +481,17 @@ clock = pygame.time.Clock()
 
 window = pygame.display.set_mode([winX,winY])
 camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene*****not true anymore technically?
-pygame.display.set_caption("Moving Box")
+pygame.display.set_caption("WREKT-angle")
 
 pygame.display.flip()
 
-
+#text initialization:
+body = pygame.font.Font(None, 36)
+subhead2 = pygame.font.Font(None, 58)
+subhead = pygame.font.Font(None, 72)
+header = pygame.font.Font(None, 134)
+subtitle = pygame.font.Font(None, 220)
+title = pygame.font.Font(None, 288)
 
 
 def game_loop():                                          
@@ -504,19 +516,22 @@ def game_loop():
     #mob = mob((300,11), (40,40))
     #centers camera at start
     player.center = camera.center#comment out to allow skewed camera
+    count = 0
 
-    #text initialization:
-    body = pygame.font.Font(None, 36)
-    subhead = pygame.font.Font(None, 72)
-    header = pygame.font.Font(None, 144)
-    subtitle = pygame.font.Font(None, 220)
-    title = pygame.font.Font(None, 288)
 
     while True:
         clock.tick(CLOCK)
         #print speed
         if player.damage_cd != 0:
+            count += 1
             player.damage_cd -= 1
+            if count % 10 == 0:
+                if player.color == player_blue:
+                    player.color = light_blue
+                else:
+                    player.color = player_blue
+        else:
+            player.color = player_blue
         if timer != 0:
             timer -= 1
         else:
@@ -525,33 +540,51 @@ def game_loop():
             if event.type == QUIT:
                 pygame.quit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == K_SPACE:
-                    if color == purple:
-                      color = red
-                    else:
-                        color = purple
-        if(pygame.key.get_pressed()[K_UP]):
+                if event.key == K_p:
+                    while(True):
+                        text = subhead.render("Game Paused (p)", 1, (255,140,0))
+                        textpos = text.get_rect()
+                        textpos.center = camera.center
+                        textpos.y -= 40
+                        window.blit(text,textpos)
+                        text = subhead2.render("Press Q to quit", 1, (255,140,0))
+                        textpos = text.get_rect()
+                        textpos.center = camera.center
+                        textpos.y += 40
+                        window.blit(text,textpos)
+                        pygame.display.update()
+                        event = pygame.event.wait()
+                        if event.type == QUIT:
+                            pygame.quit()
+                            sys.exit
+                        elif event.type == KEYDOWN:
+                            if event.key == K_p:
+                                break
+                            if event.key == K_q:
+                                pygame.quit()
+                                sys.exit
+        if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
                 #print "Not Colliding!"
                 moveRect(player,0,+speed)
                 camera.center = player.center
                 for obj in not_player:
                     moveRect(obj,0,speed)
-        if(pygame.key.get_pressed()[K_DOWN]):
+        if(pygame.key.get_pressed()[K_DOWN] or pygame.key.get_pressed()[K_s]):
             if(moveRect(player,0,speed,*walls)):
                 #print "Not Colliding!"
                 moveRect(player,0,-speed)
                 camera.center = player.center
                 for obj in not_player:
                     moveRect(obj,0,-speed)
-        if(pygame.key.get_pressed()[K_LEFT]):
+        if(pygame.key.get_pressed()[K_LEFT] or pygame.key.get_pressed()[K_a]):
             if(moveRect(player,-speed,0,*walls)):
                 #print "Not Colliding!"
                 moveRect(player,speed,0)
                 camera.center = player.center
                 for obj in not_player:
                     moveRect(obj,speed,0)
-        if(pygame.key.get_pressed()[K_RIGHT]):
+        if(pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]):
             if(moveRect(player,speed,0,*walls)):
                 #print "Not Colliding!"
                 moveRect(player,-speed,0)
@@ -579,15 +612,16 @@ def game_loop():
                 mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
-                    player.damage_cd = 2 * 60
+                    player.color = light_blue
+                    player.damage_cd = 1 * 60
         for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
             if player.colliderect(event):
-                    print "You should get BIGSPEED"
+                    #print "You should get BIGSPEED"
                     speed = default_speed+3
                     timer = 10 * CLOCK
         for event in SmallSpeed:
             if player.colliderect(event):
-                    print "You should get tinehsped"
+                    #print "You should get tinehsped"
                     speed = default_speed+1
                     timer = 10 * CLOCK
 
@@ -616,13 +650,71 @@ def game_loop():
         window.blit(text,textpos)
 
     #What's better, .update() or .flip()?
-        pygame.display.update()
+        pygame.display.flip()
 
         if player.health == 0:
+            board.wash_board()
             break
     
 if __name__ == "__main__":
-    game_loop()
+    pygame.init()
+    menu_value = 0
+    flag = True
+    while flag:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == K_w:
+                    if(menu_value > 0):
+                        menu_value -= 1
+                if event.key == K_s:
+                    if(menu_value < 1):
+                        menu_value += 1
+                if event.key == K_RETURN:
+                    if(menu_value == 1):
+                        pygame.quit()
+                    if(menu_value == 0):
+                        flag = False
+        c0 = cement
+        c1 = cement
+        if(menu_value == 0):
+            c0 = player_blue
+        if(menu_value == 1):
+            c1 = player_blue
+        text = subhead.render("Play Game", 1, c0)
+        textpos = text.get_rect()
+        textpos.center = camera.center
+        textpos.y -= 100
+        window.blit(text,textpos)
+        text = subhead.render("Quit", 1, c1)
+        textpos = text.get_rect()
+        textpos.center = camera.center
+        textpos.y += 100
+        window.blit(text,textpos)
+        pygame.display.update()
+    while True:
+        game_loop()
+        text = header.render(" You have died!", 1, purple)
+        textpos = text.get_rect()
+        textpos.center = camera.center
+        textpos.y = textpos.y - 100
+        window.blit(text,textpos)
+        text = subhead.render("Press any key to try again.", 1, (255,140,0))
+        textpos = text.get_rect()
+        textpos.center = camera.center
+        textpos.y = textpos.y + 50
+        window.blit(text,textpos)
+        pygame.display.update()
+
+        pygame.event.clear()
+        while(True):
+            event = pygame.event.wait()
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit
+            elif event.type == KEYDOWN:
+                break
 
 
 #If the player is colliding with a zone, outlined by rectangles
