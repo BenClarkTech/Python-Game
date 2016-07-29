@@ -52,6 +52,7 @@ color = red
 #
 #Array Initialization
 Mobs = []
+bullets = []
 walls = []
 not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
 SmallSpeed = []
@@ -217,7 +218,47 @@ class MobBoss(Mob):
         if(self.health <= 0):
             spawn = (self.x,self.y)
             self.remove()
-            
+
+class Bullet(Rect):
+    def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), x_speed=0, y_speed=8,
+                 power=1, owner="player", bounce=0, *args, **kwargs):
+        super(Bullet, self).__init__((x, y), (w, h), *args, **kwargs)
+        not_player.append(self)
+        bullets.append(self)
+        if owner == "player":
+            self.color = blue
+        else:
+            self.color = orange
+        self.x_speed = x_speed
+        self.y_speed = y_speed
+        self.power = power
+        self.owner = owner # could be things like "player", "mob", "trap"
+        self.bounce = bounce # number of times bullet can bounce off walls
+
+    def remove(self):
+        if self in not_player:
+            not_player.remove(self)
+        if self in bullets:
+            bullets.remove(self)
+
+    def move(self):
+        # horizontal movement
+        if self.x_speed != 0 and not moveRect(self, self.x_speed, 0, *walls):
+            if self.bounce == 0:
+                self.remove()
+            else:
+                self.x_speed *= -1
+                if self.bounce > 0:
+                    self.bounce -= 1
+        # vertical movement
+        if self.y_speed != 0 and not moveRect(self, 0, self.y_speed, *walls):
+            if self.bounce == 0:
+                self.remove()
+            else:
+                self.y_speed *= -1
+                if self.bounce > 0:
+                    self.bounce -= 1
+
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
         super(EndGoal, self).__init__(*args,**kwargs)
@@ -492,6 +533,7 @@ class Board(object):
         del not_player[:]
         del self.rooms[:]
         del Mobs[:]
+        del bullets[:]
 
     def remake(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20, level_up = 0):
         self.rows = rows
@@ -614,13 +656,16 @@ def game_loop():
                         event = pygame.event.wait()
                         if event.type == QUIT:
                             pygame.quit()
-                            sys.exit
+                            sys.exit()
                         elif event.type == KEYDOWN:
                             if event.key == K_p:
                                 break
                             if event.key == K_q:
                                 pygame.quit()
-                                sys.exit
+                                sys.exit()
+            elif event.type == MOUSEBUTTONDOWN:
+                # TODO: use mouse position to aim
+                Bullet((player.centerx - 5, player.centery - 5), (10, 10))
         if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
                 #print "Not Colliding!"
@@ -681,6 +726,24 @@ def game_loop():
                     player.health -= 1
                     player.color = light_blue
                     player.damage_cd = 1 * 60
+        # bullet movement and damage (currently only checks for "player" owner)
+        for bullet in bullets:
+            bullet.move()
+            # damage for bullets not owned by the player
+            if bullet.owner != "player":
+                if player.colliderect(bullet) and player.damage_cd == 0:
+                    player.health -= 1
+                    player.color = light_blue
+                    player.damage_cd = 1 * 60
+                    bullet.remove()
+            # damage for bullets owned by the player
+            else:
+                for mob in Mobs:
+                    if mob.colliderect(bullet):
+                        mob.takeDmg(bullet.power)
+                        bullet.remove()
+                        break
+
         for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
             if player.colliderect(event):
                     #print "You should get BIGSPEED"
@@ -779,7 +842,7 @@ if __name__ == "__main__":
             event = pygame.event.wait()
             if event.type == QUIT:
                 pygame.quit()
-                sys.exit
+                sys.exit()
             elif event.type == KEYDOWN:
                 break
 
