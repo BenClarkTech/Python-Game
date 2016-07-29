@@ -802,10 +802,10 @@ if __name__ == "__main__":
             if event.type == QUIT:
                 pygame.quit()
             elif event.type == pygame.KEYDOWN:
-                if event.key == K_w:
+                if event.key == K_w or event.key == K_UP:
                     if(menu_value > 0):
                         menu_value -= 1
-                if event.key == K_s:
+                if event.key == K_s or event.key == K_DOWN:
                     if(menu_value < 1):
                         menu_value += 1
                 if event.key == K_RETURN:
