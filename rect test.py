@@ -1,5 +1,6 @@
 import pygame
 import time
+import sys
 from pygame.locals import *
 from random import *
 
@@ -43,6 +44,8 @@ bg_gray = (19,19,19)
 orange = (255,140,0)
 white = (255,255,255)
 light_blue = (200,200,255)
+blood_red = (138,7,7)
+obsidian =  (6,6,6)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
 
@@ -153,7 +156,9 @@ class Mob(Rect):
         self.direction = [randint(1,4),0]
         self.color = black
         self.speed = default_speed * .5 * speed_scale
-
+        self.health = 5
+        self.flash = 0
+        
     #def __call__(self, *args, **kwargs):
     #    return mob.__init__(self, *args, **kwargs)
 
@@ -180,6 +185,39 @@ class Mob(Rect):
                 self.direction[0] = 3
                 self.direction[1] = choice([1, 2, 3])
 
+    def takeDmg(self,dmg=1):
+        print self.health
+        self.health -= dmg
+        print self.health
+        self.flash = 20
+        if(self.health <= 0):
+            self.remove()
+            print "killed."
+
+class MobBoss(Mob):
+    def __init__(self,(x, y) = (0,0), (w, h) = (0,0), speed_scale = 1, level=0, *args, **kwargs):
+        super(MobBoss, self).__init__((x,y),(w,h),speed_scale,*args,**kwargs)
+        stage = level/5
+        self.health = 100
+        self.speed = default_speed * .5
+
+    def takeDmg(self,dmg=1):
+        self.health -= dmg
+        self.flash = 20
+        if(self.health == 50):
+            self.w = self.w/2
+            self.h = self.h/2
+            newmob = MobBoss((self.x,self.y),(self.w,self.h))
+            newmob.health = 50
+        if(self.health == 25):
+            self.w = self.w/2
+            self.h = self.h/2
+            newmob2 = MobBoss((self.x,self.y),(self.w,self.h))
+            newmob2.health = 25
+        if(self.health <= 0):
+            spawn = (self.x,self.y)
+            self.remove()
+            
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
         super(EndGoal, self).__init__(*args,**kwargs)
@@ -236,6 +274,7 @@ class Room(object):
         self.Floors = []
         self.Floors.append(Env((self.x,self.y),(self.w,self.h)))
         self.Walls = []
+        self.Mobs = []
         if self.N:
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
             self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
@@ -307,7 +346,11 @@ class Room(object):
         decide = 1#randint(0, 1)
         if decide == 1:
             ran = randint(0,15)
-            Mobs.append(Mob((self.x+150,self.y+100), (30 + ran,30 + ran), 1 + self.level/5))
+            self.Mobs.append(Mob((self.x+150,self.y+100), (30 + ran,30 + ran), 1 + self.level/5))
+
+    def GetBoss(self,level):
+        self.Mobs.append(MobBoss((0,0),(200,200)))
+        self.Mobs[0].topright = self.Floors[0].topright
             
 
 class Board(object):
@@ -326,6 +369,10 @@ class Board(object):
         self.generate()
         
     def generate(self):
+        print "Generating new board"
+        if(self.level != 0 and self.level%3 == 2):
+            self.generateBoss()
+            return
         self.collumns += self.level/2
         self.rows += self.level/2
         rooms = []
@@ -333,6 +380,7 @@ class Board(object):
         events = []
         N,S,E,W = False,False,False,False
         room_layout = (N,S,E,W)
+        print "Making rooms"
         for i in range(0,self.collumns):
             for j in range(0,self.rows):
                 #Randomization
@@ -386,7 +434,7 @@ class Board(object):
 
             rooms.append(row)#not part of newconcept
             row = []#not part of newconcept
-
+        print "Checking rooms"
         #checker to get all passable terrain
         self.rooms = rooms
         self.checker(0,0);
@@ -411,7 +459,7 @@ class Board(object):
                     print "Mob got."
                     room.GetMobs()
                     
-                    
+        print "Generating Events."
         #EventGeneration goes here !!!Read instructions before adding event located near the event class block!!!
         for row in rooms:
             for room in row:
@@ -430,14 +478,14 @@ class Board(object):
                             events.append(SpeedS((0,0),(50,50)))
                             events[len(events)-1].center = room.center
                         #addnew small events here as an elif
-                            
+        print "Removing rooms"
         #Unaccessable room removal:
         for row in rooms:
             for room in row:
                 if room.checked == False:
-                    print "Removing room"
                     room.remove()
         self.rooms = rooms #saves rooms for later use - should make all rooms self.rooms for efficiency
+        print "Generation complete"
 
     def wash_board(self):
         del walls[:]
@@ -473,7 +521,14 @@ class Board(object):
         if self.rooms[x][y].W:
             if self.rooms[x-1][y].checked == False:
                 self.checker(x-1,y)
+        print "Checking cleared!"
 
+    def generateBoss(self):
+        self.rooms = []
+        row = []
+        row.append(Room((self.startX,self.startY),(self.roomW*1.5,self.roomH*1),(False,False,False,False),floor_color = blood_red, wall_color = obsidian, wall_thickness = self.thick*3, level = 0))
+        self.rooms.append(row)
+        self.rooms[0][0].GetBoss(self.level)
 #End Class Definition
 
 
@@ -482,7 +537,7 @@ clock = pygame.time.Clock()
 window = pygame.display.set_mode([winX,winY])
 camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene*****not true anymore technically?
 pygame.display.set_caption("WREKT-angle")
-
+spawn = (0,0)
 pygame.display.flip()
 
 #text initialization:
@@ -540,6 +595,9 @@ def game_loop():
             if event.type == QUIT:
                 pygame.quit()
             elif event.type == pygame.KEYDOWN:
+                if event.key == K_j:
+                        for mob in Mobs:
+                            mob.takeDmg(1)
                 if event.key == K_p:
                     while(True):
                         text = subhead.render("Game Paused (p)", 1, (255,140,0))
@@ -591,24 +649,33 @@ def game_loop():
                 camera.center = player.center
                 for obj in not_player:
                     moveRect(obj,-speed,0)
-        if player.colliderect(board.goal):
-            #print "next board"
-            board.wash_board()
-            #print walls
-            rows = randint(1,4)
-            collumns = randint(1,4)
-            board.remake(rows,collumns,level_up = 1)
-            player.x = xpos
-            player.y = ypos
-            camera.center = player.center
-            #Show levelup screen possibly with something like [space] to continue
-            #clear board
-            #increment level counter
-            #move player to start position
-            #regenerate a board
+        if board.goal == None:
+            if len(Mobs) == 0:
+                board.goal = EndGoal(spawn,(40,40))
+        if board.goal != None:
+            if player.colliderect(board.goal):
+                #print "next board"
+                board.wash_board()
+                #print walls
+                rows = randint(1,4)
+                collumns = randint(1,4)
+                board.remake(rows,collumns,level_up = 1)
+                player.x = xpos
+                player.y = ypos
+                camera.center = player.center
+                #Show levelup screen possibly with something like [space] to continue
+                #clear board
+                #increment level counter
+                #move player to start position
+                #regenerate a board
 
-            ##### mob movement && damage###
+                ##### mob movement && damage###
         for mob in Mobs:
+                if(mob.flash != 0):
+                    mob.color = (70,70,70)
+                    mob.flash -= 1
+                else:
+                    mob.color = black
                 mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
