@@ -22,6 +22,7 @@ speed = default_speed
 #mob_direction = [-1, 0]
 CLOCK = 60
 timer = 0
+spawn = (0,0)
 
 CameraX = 0#camera start
 CameraY = 0
@@ -205,6 +206,7 @@ class MobBoss(Mob):
         self.at_quarter_health = False
 
     def takeDmg(self,dmg=1):
+        global spawn
         self.health -= dmg
         self.flash = 20
         if(self.at_half_health == False and self.health <= 50):
@@ -212,13 +214,17 @@ class MobBoss(Mob):
             self.w = self.w/2
             self.h = self.h/2
             newmob = MobBoss((self.x,self.y),(self.w,self.h))
+            self.speed *= 2
+            newmob.speed *= 2
             newmob.health = 50
             newmob.at_half_health = True
         if(self.at_quarter_health == False and self.health <= 25):
             self.at_quarter_health = True
             self.w = self.w/2
             self.h = self.h/2
+            self.speed *= 2
             newmob2 = MobBoss((self.x,self.y),(self.w,self.h))
+            newmob2.speed *= 4
             newmob2.health = 25
             newmob2.at_half_health = True
             newmob2.at_quarter_health = True
@@ -586,7 +592,6 @@ clock = pygame.time.Clock()
 window = pygame.display.set_mode([winX,winY])
 camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene*****not true anymore technically?
 pygame.display.set_caption("WREKT-angle")
-spawn = (0,0)
 pygame.display.flip()
 
 #text initialization:
