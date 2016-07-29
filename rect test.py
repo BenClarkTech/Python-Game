@@ -201,27 +201,34 @@ class MobBoss(Mob):
         stage = level/5
         self.health = 100
         self.speed = default_speed * .5
+        self.at_half_health = False
+        self.at_quarter_health = False
 
     def takeDmg(self,dmg=1):
         self.health -= dmg
         self.flash = 20
-        if(self.health == 50):
+        if(self.at_half_health == False and self.health <= 50):
+            self.at_half_health = True
             self.w = self.w/2
             self.h = self.h/2
             newmob = MobBoss((self.x,self.y),(self.w,self.h))
             newmob.health = 50
-        if(self.health == 25):
+            newmob.at_half_health = True
+        if(self.at_quarter_health == False and self.health <= 25):
+            self.at_quarter_health = True
             self.w = self.w/2
             self.h = self.h/2
             newmob2 = MobBoss((self.x,self.y),(self.w,self.h))
             newmob2.health = 25
+            newmob2.at_half_health = True
+            newmob2.at_quarter_health = True
         if(self.health <= 0):
             spawn = (self.x,self.y)
             self.remove()
 
 class Bullet(Rect):
     def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), x_speed=0, y_speed=8,
-                 power=1, owner="player", bounce=0, *args, **kwargs):
+                 power=2, owner="player", bounce=0, *args, **kwargs):
         super(Bullet, self).__init__((x, y), (w, h), *args, **kwargs)
         not_player.append(self)
         bullets.append(self)
