@@ -153,10 +153,14 @@ def moveTrueRect_single_axis(rec,dx,dy,*args):
             return False
     #print "not Colliding"
     return True
+
+def terminate():
+    pygame.quit()
+    sys.exit()
+
 #End Function Definition
 #Begin Class Definition
-#End Function Definition
-#Begin Class Definition
+
 class Wall(Rect):
     def __init__(self, (x,y) = (0,0), (w,h) = (0,0), rec = None, *args, **kwargs):
         if rec == None:
@@ -756,8 +760,7 @@ def game_loop():
 
         for event in pygame.event.get():
             if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+                terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_j:
                         for mob in Mobs:
@@ -777,14 +780,12 @@ def game_loop():
                         pygame.display.update()
                         event = pygame.event.wait()
                         if event.type == QUIT:
-                            pygame.quit()
-                            sys.exit()
+                            terminate()
                         elif event.type == KEYDOWN:
                             if event.key == K_p:
                                 break
                             if event.key == K_q:
-                                pygame.quit()
-                                sys.exit()
+                                terminate()
         if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
                 #print "Not Colliding!"
@@ -940,8 +941,7 @@ if __name__ == "__main__":
     while flag:
         for event in pygame.event.get():
             if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+                terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_w or event.key == K_UP:
                     if(menu_value > 0):
@@ -951,8 +951,7 @@ if __name__ == "__main__":
                         menu_value += 1
                 if event.key == K_RETURN:
                     if(menu_value == 1):
-                        pygame.quit()
-                        sys.exit()
+                        terminate()
                     if(menu_value == 0):
                         flag = False
         c0 = cement
@@ -990,8 +989,7 @@ if __name__ == "__main__":
         while(True):
             event = pygame.event.wait()
             if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+                terminate()
             elif event.type == KEYDOWN and event.key == K_r:
                 break
 
