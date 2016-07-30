@@ -69,6 +69,27 @@ mob_gate = []
 #Begin Function Definition
 
 
+def fire_shot((x, y), (w, h), center_angle, speed, power, bounce, spread_count,
+              spread_angle, owner, color=None):
+    """Create one or more bullets with the given properties. Use this
+    instead of the Bullet constructor.
+    """
+    # spread calculation expects that spread_count is at least 1
+    if spread_count < 1:
+        spread_count = 1
+
+    # calculate the angles for all bullets in the spread
+    bullet_angles = [center_angle
+                     - ((spread_count - 1) * spread_angle / 2.0)
+                     + (spread_angle * bullet_number)
+                     for bullet_number in range(spread_count)]
+
+    # create all bullets
+    for angle in bullet_angles:
+        Bullet((x, y), (w, h),
+               speed * math.cos(angle), speed * math.sin(angle),
+               power, bounce, owner, color)
+
 def getBounds(rec):
     """Takes in a rectangle and returns a list of the various bounds.
     [0] is x left bound, [1] is x right bound, [2] is y top bound
@@ -305,22 +326,31 @@ class MobBoss(Mob):
             self.remove()
 
 class Bullet(Rect):
-    def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), x_speed=0, y_speed=8,
-                 power=2, owner="player", bounce=0, *args, **kwargs):
+    def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), x_speed=0, y_speed=15,
+                 power=1, bounce=0, owner="player", color=None,
+                 *args, **kwargs):
         super(Bullet, self).__init__((x, y), (w, h), *args, **kwargs)
+        
         not_player.append(self)
         bullets.append(self)
-        if owner == "player":
-            self.color = blue
-        else:
-            self.color = orange
-        self.x_speed = x_speed
-        self.y_speed = y_speed
+        
         self.realx = self.x
         self.realy = self.y
-        self.power = power
-        self.owner = owner # could be things like "player", "mob", "trap"
+        self.x_speed = x_speed
+        self.y_speed = y_speed
+        if power < 1:
+            self.power = 1
+        else:
+            self.power = power
         self.bounce = bounce # number of times bullet can bounce off walls
+        self.owner = owner # could be things like "player", "mob", "trap"
+        if color == None:
+            if owner == "player":
+                self.color = blue
+            else:
+                self.color = orange
+        else:
+            self.color = color
 
     def remove(self):
         if self in not_player:
@@ -820,15 +850,9 @@ def game_loop():
             mouse_x_distance = mouse_x - player.centerx
             mouse_y_distance = mouse_y - player.centery
             mouse_angle = math.atan2(mouse_y_distance, mouse_x_distance)
-            bullet_angles = [
-                mouse_angle
-                - ((player.shot_spread - 1) * default_spread_angle / 2.0)
-                + (default_spread_angle * shot_number)
-                for shot_number in range(player.shot_spread)]
-            for angle in bullet_angles:
-                Bullet((player.centerx - 5, player.centery - 5), (10, 10),
-                       default_bullet_speed * math.cos(angle),
-                       default_bullet_speed * math.sin(angle))
+            fire_shot((player.centerx - 5, player.centery - 5), (10, 10),
+                      mouse_angle, default_bullet_speed, 2, 3, 4,
+                      default_spread_angle, "player")
         if board.goal == None:
             if len(Mobs) == 0:
                 board.goal = EndGoal(spawn,(40,40))
