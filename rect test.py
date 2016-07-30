@@ -20,8 +20,9 @@ px=xpos#archaic variables for revision
 py=ypos
 default_speed = 3
 speed = default_speed
-default_bullet_speed = 1
+default_bullet_speed = 15
 default_shot_delay = 15
+default_spread_angle = 0.1
 #mob_direction = [-1, 0]
 CLOCK = 60
 timer = 0
@@ -199,6 +200,7 @@ class Player(Rect):
         self.health = 3
         self.damage_cd = 0
         self.shot_timer = 0
+        self.shot_spread = 4
 
 class Mob(Rect):
     def __init__(self, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
@@ -760,14 +762,20 @@ def game_loop():
                 for obj in not_player:
                     moveRect(obj,-speed,0)
         if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
-            player.shot_timer = default_shot_delay############################
+            player.shot_timer = default_shot_delay
             mouse_x, mouse_y = pygame.mouse.get_pos()
             mouse_x_distance = mouse_x - player.centerx
             mouse_y_distance = mouse_y - player.centery
             mouse_angle = math.atan2(mouse_y_distance, mouse_x_distance)
-            Bullet((player.centerx - 5, player.centery - 5), (10, 10),
-                   default_bullet_speed * math.cos(mouse_angle),
-                   default_bullet_speed * math.sin(mouse_angle))
+            bullet_angles = [
+                mouse_angle
+                - ((player.shot_spread - 1) * default_spread_angle / 2.0)
+                + (default_spread_angle * shot_number)
+                for shot_number in range(player.shot_spread)]
+            for angle in bullet_angles:
+                Bullet((player.centerx - 5, player.centery - 5), (10, 10),
+                       default_bullet_speed * math.cos(angle),
+                       default_bullet_speed * math.sin(angle))
         if board.goal == None:
             if len(Mobs) == 0:
                 board.goal = EndGoal(spawn,(40,40))
