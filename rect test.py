@@ -51,6 +51,7 @@ white = (255,255,255)
 light_blue = (200,200,255)
 blood_red = (138,7,7)
 obsidian =  (6,6,6)
+gold = (255, 215, 0)
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
 
@@ -62,7 +63,7 @@ walls = []
 not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
 SmallSpeed = []
 BigSpeed = []
-
+mob_gate = []
 
 #End Constand Definition
 #Begin Function Definition
@@ -175,7 +176,6 @@ class Wall(Rect):
         not_player.remove(self)
         walls.remove(self)
 
-
 class Env(Rect):
     def __init__(self, (x, y) = (0,0), (w, h) = (0,0), rec = None, *args, **kwargs):
         if rec == None:
@@ -192,6 +192,17 @@ class Env(Rect):
             
     def remove(self):
         not_player.remove(self)
+
+class MobGate(Rect):
+    def __init__(self, *args, **kwargs):
+        super(MobGate,self).__init__(*args,**kwargs)
+        not_player.append(self)
+        mob_gate.append(self)
+        self.color = gold
+
+    def remove(self):
+        not_player.remove(self)
+        mob_gate.remove(self)
 
 class Player(Rect):
     def __init__(self, *args, **kwargs):
@@ -222,20 +233,25 @@ class Mob(Rect):
 
     def move(self):
         ##### mob movement ###
+        collideable = []
+        for wall in walls:
+            collideable.append(wall)
+        for gate in mob_gate:
+            collideable.append(gate)
         if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
-            if(not moveRect(self,0,-self.speed,*walls)):
+            if(not moveRect(self,0,-self.speed,*collideable)):
                 self.direction[0] = 2
                 self.direction[1] = choice([2, 3, 4])
         if(self.direction[0] == 2 or self.direction[1] == 2): #moving down
-            if(not moveRect(self,0,self.speed,*walls)):
+            if(not moveRect(self,0,self.speed,*collideable)):
                 self.direction[0] = 1
                 self.direction[1] = choice([1, 3, 4])
         if(self.direction[0] == 3 or self.direction[1] == 3): #moving left
-            if(not moveRect(self,-self.speed,0,*walls)):
+            if(not moveRect(self,-self.speed,0,*collideable)):
                 self.direction[0] = 4
                 self.direction[1] = choice([1, 2, 4])
         if(self.direction[0] == 4 or self.direction[1] == 4): #moving right
-            if(not moveRect(self,self.speed,0,*walls)):
+            if(not moveRect(self,self.speed,0,*collideable)):
                 self.direction[0] = 3
                 self.direction[1] = choice([1, 2, 3])
 
@@ -309,8 +325,13 @@ class Bullet(Rect):
             bullets.remove(self)
 
     def move(self):
+        collideable = []
+        for wall in walls:
+            collideable.append(wall)
+        for gate in mob_gate:
+            collideable.append(gate)
         # horizontal movement
-        if self.x_speed != 0 and not moveRect(self, self.x_speed, 0, *walls):
+        if self.x_speed != 0 and not moveRect(self, self.x_speed, 0, *collideable):
             if self.bounce == 0:
                 self.remove()
             else:
@@ -318,7 +339,7 @@ class Bullet(Rect):
                 if self.bounce > 0:
                     self.bounce -= 1
         # vertical movement
-        if self.y_speed != 0 and not moveRect(self, 0, self.y_speed, *walls):
+        if self.y_speed != 0 and not moveRect(self, 0, self.y_speed, *collideable):
             if self.bounce == 0:
                 self.remove()
             else:
@@ -386,25 +407,25 @@ class Room(object):
         if self.N:
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
             self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y-wall_thickness),(self.w * chunk+wall_thickness,wall_thickness)))
-            self.Floors.append(Env((self.x+chunk*self.w - 1,self.y-wall_thickness),(self.w*gap + 1,wall_thickness)))
+            self.Floors.append(MobGate((self.x+chunk*self.w - 1,self.y-wall_thickness),(self.w*gap + 1,wall_thickness)))
         else:
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(self.w+2*wall_thickness,wall_thickness)))
         if self.W:
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(wall_thickness,self.h * chunk+wall_thickness)))
             self.Walls.append(Wall((self.x-wall_thickness,self.y+(chunk+gap)*self.h),(wall_thickness,self.h * chunk+wall_thickness)))
-            self.Floors.append(Env((self.x-wall_thickness,self.y+chunk*self.h-1),(wall_thickness,self.h * gap + 1)))
+            self.Floors.append(MobGate((self.x-wall_thickness,self.y+chunk*self.h-1),(wall_thickness,self.h * gap + 1)))
         else:    
             self.Walls.append(Wall((self.x-wall_thickness,self.y-wall_thickness),(wall_thickness,self.h+2*wall_thickness)))
         if self.S:
             self.Walls.append(Wall((self.x-wall_thickness,self.y+self.h),(self.w * chunk+wall_thickness,wall_thickness)))
             self.Walls.append(Wall((self.x+(chunk+gap)*self.w,self.y+self.h),(self.w * chunk+wall_thickness,wall_thickness)))
-            self.Floors.append(Env((self.x+chunk*self.w,self.y+self.h),(self.w * gap,wall_thickness)))
+            self.Floors.append(MobGate((self.x+chunk*self.w,self.y+self.h),(self.w * gap,wall_thickness)))
         else:
             self.Walls.append(Wall((self.x-wall_thickness,self.y+self.h),(self.w+2*wall_thickness,wall_thickness)))
         if self.E:
             self.Walls.append(Wall((self.x+self.w,self.y-wall_thickness),(wall_thickness,self.h * chunk+wall_thickness)))
             self.Walls.append(Wall((self.x+self.w,self.y+(chunk+gap)*self.h),(wall_thickness,self.h * chunk+wall_thickness)))
-            self.Floors.append(Env((self.x+self.w,self.y+chunk*self.h),(wall_thickness,self.h * gap)))
+            self.Floors.append(MobGate((self.x+self.w,self.y+chunk*self.h),(wall_thickness,self.h * gap)))
         else:    
             self.Walls.append(Wall((self.x+self.w,self.y-wall_thickness),(wall_thickness,self.h+2*wall_thickness)))
         for wall in self.Walls:
@@ -450,6 +471,30 @@ class Room(object):
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
 
+    def GetBossCover(self):
+        covers = 4
+        cover_model = randint(1,covers)
+        if cover_model == 0:
+            return
+        elif cover_model == 1: #One Box Center
+            self.Walls.append(Wall((self.x+self.w*.4,self.y+self.h*.4),(self.w*.2,self.h*.2)))
+        elif cover_model == 2: #HalfRoom
+            self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
+            event = SpeedS((self.x+self.w/4-30,self.y+self.h/2-30),(60,60))
+            event = SpeedB((self.x+3*self.w/4-50,self.y+self.h/2-50),(100,100))
+        elif cover_model == 3: #Four corner boxes
+            self.Walls.append(Wall((self.x,self.y),(100,100)))
+            self.Walls.append(Wall((self.x,self.y),(100,100)))
+            self.Walls[len(self.Walls)-1].topright = self.Floors[0].topright
+            self.Walls.append(Wall((self.x,self.y),(100,100)))
+            self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
+            self.Walls.append(Wall((self.x,self.y),(100,100)))
+            self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
+        elif cover_model == 4: #CrossRoom
+            self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
+            self.Walls.append(Wall((self.x+self.w*.35,self.y + self.h*.49),(self.w*.3,self.h*.02)))
+    
+
     def GetMobs(self):
         decide = 1#randint(0, 1)
         if decide == 1:
@@ -458,7 +503,7 @@ class Room(object):
 
     def GetBoss(self,level):
         self.Mobs.append(MobBoss((0,0),(200,200)))
-        self.Mobs[0].topright = self.Floors[0].topright
+        self.Mobs[0].midright = self.Floors[0].midright
             
 
 class Board(object):
@@ -601,6 +646,7 @@ class Board(object):
         del self.rooms[:]
         del Mobs[:]
         del bullets[:]
+        del mob_gate[:]
 
     def remake(self, rows, collumns, startX=0, startY=0, roomW = 500, roomH = 500, thick = 20, level_up = 0):
         self.rows = rows
@@ -615,19 +661,24 @@ class Board(object):
         self.level += level_up
 
     def checker(self,x,y):
+        print "Checking iteration" + str(x) + str(y)
         self.rooms[x][y].checked = True
         #self.rooms[x][y].SetFloor(chocolate)
         #print str(x)+" "+str(y)
         if self.rooms[x][y].N:
+            print "N" + str(x) + str(y)
             if self.rooms[x][y-1].checked == False:
                 self.checker(x,y-1)
         if self.rooms[x][y].S:
+            print "S" + str(x) + str(y)
             if self.rooms[x][y+1].checked == False:
                 self.checker(x,y+1)
         if self.rooms[x][y].E:
+            print "E" + str(x) + str(y)
             if self.rooms[x+1][y].checked == False:
                 self.checker(x+1,y)
         if self.rooms[x][y].W:
+            print "W" + str(x) + str(y)
             if self.rooms[x-1][y].checked == False:
                 self.checker(x-1,y)
         print "Checking cleared!"
@@ -637,6 +688,7 @@ class Board(object):
         row = []
         row.append(Room((self.startX,self.startY),(self.roomW*1.5,self.roomH*1),(False,False,False,False),floor_color = blood_red, wall_color = obsidian, wall_thickness = self.thick*3, level = 0))
         self.rooms.append(row)
+        self.rooms[0][0].GetBossCover()
         self.rooms[0][0].GetBoss(self.level)
 #End Class Definition
 
@@ -736,31 +788,31 @@ def game_loop():
         if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
                 #print "Not Colliding!"
-                moveRect(player,0,+speed)
+                #moveRect(player,0,+speed)
                 camera.center = player.center
-                for obj in not_player:
-                    moveRect(obj,0,speed)
+                """for obj in not_player:
+                    moveRect(obj,0,speed)"""
         if(pygame.key.get_pressed()[K_DOWN] or pygame.key.get_pressed()[K_s]):
             if(moveRect(player,0,speed,*walls)):
                 #print "Not Colliding!"
-                moveRect(player,0,-speed)
+                #moveRect(player,0,-speed)
                 camera.center = player.center
-                for obj in not_player:
-                    moveRect(obj,0,-speed)
+                """for obj in not_player:
+                    moveRect(obj,0,-speed)"""
         if(pygame.key.get_pressed()[K_LEFT] or pygame.key.get_pressed()[K_a]):
             if(moveRect(player,-speed,0,*walls)):
                 #print "Not Colliding!"
-                moveRect(player,speed,0)
+                #moveRect(player,speed,0)
                 camera.center = player.center
-                for obj in not_player:
-                    moveRect(obj,speed,0)
+                """for obj in not_player:
+                    moveRect(obj,speed,0)"""
         if(pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]):
             if(moveRect(player,speed,0,*walls)):
                 #print "Not Colliding!"
-                moveRect(player,-speed,0)
+                #moveRect(player,-speed,0)
                 camera.center = player.center
-                for obj in not_player:
-                    moveRect(obj,-speed,0)
+                """for obj in not_player:
+                    moveRect(obj,-speed,0)"""
         if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
             player.shot_timer = default_shot_delay
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -829,20 +881,27 @@ def game_loop():
         for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
             if player.colliderect(event):
                     #print "You should get BIGSPEED"
-                    speed = default_speed+3
-                    timer = 10 * CLOCK
+                    speed = default_speed+2
+                    timer = 2 * CLOCK
         for event in SmallSpeed:
             if player.colliderect(event):
                     #print "You should get tinehsped"
                     speed = default_speed+1
-                    timer = 10 * CLOCK
+                    timer = 1 * CLOCK
 
     #Painting of scene:
         window.fill(bg_gray)
         for obj in not_player:
+            obj.x -= camera.x
+            obj.y -= camera.y
             pygame.draw.rect(window, obj.color, obj)
-            
+
+
+        player.x -= camera.x
+        player.y -= camera.y
+        camera.center = player.center
         pygame.draw.rect(window, player.color, player)
+
 
     #Paint Text:
         for row in board.rooms:#This loop paints all the room levels
@@ -861,7 +920,13 @@ def game_loop():
         textpos.topleft = camera.topleft
         window.blit(text,textpos)
 
-    #What's better, .update() or .flip()?
+        #scene reversion
+        for obj in not_player:
+            obj.x += camera.x
+            obj.y += camera.y
+        player.x += camera.x
+        player.y += camera.y
+        #What's better, .update() or .flip()?
         pygame.display.flip()
 
         if player.health == 0:
