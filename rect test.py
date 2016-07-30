@@ -979,7 +979,7 @@ if __name__ == "__main__":
         textpos.center = camera.center
         textpos.y = textpos.y - 100
         window.blit(text,textpos)
-        text = subhead.render("Press any key to try again.", 1, (255,140,0))
+        text = subhead.render("Press R to try again.", 1, (255,140,0))
         textpos = text.get_rect()
         textpos.center = camera.center
         textpos.y = textpos.y + 50
@@ -992,7 +992,7 @@ if __name__ == "__main__":
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == KEYDOWN:
+            elif event.type == KEYDOWN and event.key == K_r:
                 break
 
 
