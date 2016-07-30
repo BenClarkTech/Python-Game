@@ -18,10 +18,10 @@ xpos = 300#starting position if camera skewed
 ypos = 280
 px=xpos#archaic variables for revision
 py=ypos
-default_speed = 3
+default_speed = 4
 speed = default_speed
 default_bullet_speed = 15
-default_shot_delay = 15
+default_shot_delay = 40.0
 default_spread_angle = 0.1
 #mob_direction = [-1, 0]
 CLOCK = 60
@@ -47,11 +47,14 @@ dark_gray = (71,71,71)
 player_blue = (100,200,250)
 bg_gray = (19,19,19)
 orange = (255,140,0)
+dark_orange = (139,69,0)
 white = (255,255,255)
 light_blue = (200,200,255)
 blood_red = (138,7,7)
 obsidian =  (6,6,6)
-gold = (255, 215, 0)
+gold = (205, 173, 0)
+light_yellow = (238, 238, 180)
+
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
 
@@ -64,6 +67,8 @@ not_player = [] #because of how movement works we could actually include player,
 SmallSpeed = []
 BigSpeed = []
 mob_gate = []
+Fire = []
+Buck = []
 
 #End Constand Definition
 #Begin Function Definition
@@ -236,7 +241,8 @@ class Player(Rect):
         self.health = 3
         self.damage_cd = 0
         self.shot_timer = 0
-        self.shot_spread = 4
+        self.shot_spread = 1
+        self.fire_rate = 1/default_shot_delay
 
 class Mob(Rect):
     def __init__(self, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
@@ -284,8 +290,12 @@ class Mob(Rect):
         print self.health
         self.health -= dmg
         print self.health
-        self.flash = 7
+        self.flash = 5
         if(self.health <= 0):
+            x = randint(0,1)
+            y = randint(0,1)
+            if x == 1 or y == 1:
+                GetPowerup(self.x,self.y)
             self.remove()
             print "killed."
 
@@ -420,6 +430,39 @@ class SpeedB(Rect):
         BigSpeed.remove(self)
 
 #End Event Class Blocks
+
+#Power Up Blocks
+def GetPowerup(x,y):
+    numUPs = 2
+    z = randint(1,numUPs)
+    if z == 1:
+        powerup = BuckShotUP((x,y),(40,40))
+    if z == 2:
+        powerup = FireRateUP((x,y),(40,40))
+
+class BuckShotUP(Rect):
+    def __init__(self, *args, **kwargs):
+        super(BuckShotUP,self).__init__(*args,**kwargs)
+        not_player.append(self)
+        Buck.append(self)
+        self.color = orange
+
+    def remove(self):
+        not_player.remove(self)
+        Buck.remove(self)
+
+class FireRateUP(Rect):
+    def __init__(self, *args, **kwargs):
+        super(FireRateUP,self).__init__(*args,**kwargs)
+        not_player.append(self)
+        Fire.append(self)
+        self.color = light_yellow
+
+    def remove(self):
+        not_player.remove(self)
+        Fire.remove(self)
+
+#End Power Up Blocks
         
 class Room(object):
     """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
@@ -465,13 +508,15 @@ class Room(object):
         for wall in self.Walls:
             wall.color = wall_color
         for floor in self.Floors:
-            floor.color = floor_color
+            if type(floor) != MobGate:
+                floor.color = floor_color
         self.center = self.Floors[0].center
 
     def SetFloor(self,color):
         self.floor_color = color
         for floor in self.Floors:
-            floor.color = color
+            if type(floor) != MobGate:
+                floor.color = color
 
     def SetWall(self,color):
         self.wall_color = color
@@ -557,7 +602,7 @@ class Board(object):
         
     def generate(self):
         print "Generating new board"
-        if(self.level != 0 and self.level%3 == 2):
+        if(self.level != 0 and self.level%5 == 4):
             self.generateBoss()
             return
         self.collumns += self.level/2
@@ -617,7 +662,7 @@ class Board(object):
                         S = True
                 #Theory: No room will be unaccessable with this code.
                 room_layout = (N,S,E,W)
-                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (randint(0,255),randint(0,255),randint(0,255)),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
+                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (139,58,58),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
 
             rooms.append(row)#not part of newconcept
             row = []#not part of newconcept
@@ -658,7 +703,7 @@ class Board(object):
                             events.append(SpeedB((0,0),(100,100)))
                             events[len(events)-1].center = room.center
                         #addnew big events here as an elif
-                    elif randint(0,4) == 4:
+                    elif randint(4,4) == 4:
                         number_small = 1 #if you add a new small event increment this
                         choice = randint(1,number_small)
                         if choice == 1:
@@ -675,6 +720,10 @@ class Board(object):
         print "Generation complete"
 
     def wash_board(self):
+        del Fire[:]
+        del Buck[:]
+        del SmallSpeed[:]
+        del BigSpeed[:]
         del walls[:]
         del not_player[:]
         del self.rooms[:]
@@ -845,13 +894,13 @@ def game_loop():
                 """for obj in not_player:
                     moveRect(obj,-speed,0)"""
         if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
-            player.shot_timer = default_shot_delay
+            player.shot_timer = 1/player.fire_rate
             mouse_x, mouse_y = pygame.mouse.get_pos()
             mouse_x_distance = mouse_x - player.centerx
             mouse_y_distance = mouse_y - player.centery
             mouse_angle = math.atan2(mouse_y_distance, mouse_x_distance)
             fire_shot((player.centerx - 5, player.centery - 5), (10, 10),
-                      mouse_angle, default_bullet_speed, 2, 3, 4,
+                      mouse_angle, default_bullet_speed, 1, 0, player.shot_spread,
                       default_spread_angle, "player")
         if board.goal == None:
             if len(Mobs) == 0:
@@ -913,7 +962,16 @@ def game_loop():
                     #print "You should get tinehsped"
                     speed = default_speed+1
                     timer = 1 * CLOCK
-
+                    
+        for powerup in Buck: #PowerUp Executions go here
+            if player.colliderect(powerup):
+                player.shot_spread += 1
+                powerup.remove()
+        for powerup in Fire:
+            if player.colliderect(powerup):
+                player.fire_rate += 2/40
+                powerup.remove()
+                
     #Painting of scene:
         window.fill(bg_gray)
         for obj in not_player:
