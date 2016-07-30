@@ -84,8 +84,14 @@ def moveRect(rec,dx,dy,*args):
         return ret
 
 def moveRect_single_axis(rec,dx,dy,*args):
-    rec.x += dx
-    rec.y += dy
+    if type(rec) is Bullet:
+        rec.realx += dx
+        rec.realy += dy
+        rec.x = int(round(rec.realx))
+        rec.y = int(round(rec.realy))
+    else:
+        rec.x += dx
+        rec.y += dy
     for arg in args:
         #print str(args[0])+str(rec) #object debugging
         if rec.colliderect(arg):
@@ -302,7 +308,7 @@ class Bullet(Rect):
 
     def move(self):
         # horizontal movement
-        if self.x_speed != 0 and not moveTrueRect(self, self.x_speed, 0, *walls):
+        if self.x_speed != 0 and not moveRect(self, self.x_speed, 0, *walls):
             if self.bounce == 0:
                 self.remove()
             else:
@@ -310,7 +316,7 @@ class Bullet(Rect):
                 if self.bounce > 0:
                     self.bounce -= 1
         # vertical movement
-        if self.y_speed != 0 and not moveTrueRect(self, 0, self.y_speed, *walls):
+        if self.y_speed != 0 and not moveRect(self, 0, self.y_speed, *walls):
             if self.bounce == 0:
                 self.remove()
             else:
