@@ -1,4 +1,5 @@
 import pygame
+import math
 import time
 import sys
 from pygame.locals import *
@@ -19,6 +20,8 @@ px=xpos#archaic variables for revision
 py=ypos
 default_speed = 3
 speed = default_speed
+default_bullet_speed = 15
+default_shot_delay = 15
 #mob_direction = [-1, 0]
 CLOCK = 60
 timer = 0
@@ -149,6 +152,7 @@ class Player(Rect):
         self.color = player_blue
         self.health = 3
         self.damage_cd = 0
+        self.shot_timer = 0
 
 class Mob(Rect):
     def __init__(self, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
@@ -242,8 +246,8 @@ class Bullet(Rect):
             self.color = blue
         else:
             self.color = orange
-        self.x_speed = x_speed
-        self.y_speed = y_speed
+        self.x_speed = int(round(x_speed))
+        self.y_speed = int(round(y_speed))
         self.power = power
         self.owner = owner # could be things like "player", "mob", "trap"
         self.bounce = bounce # number of times bullet can bounce off walls
@@ -645,9 +649,13 @@ def game_loop():
             timer -= 1
         else:
             speed = default_speed
+        if player.shot_timer > 0:
+            player.shot_timer -= 1
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_j:
                         for mob in Mobs:
@@ -675,9 +683,6 @@ def game_loop():
                             if event.key == K_q:
                                 pygame.quit()
                                 sys.exit()
-            elif event.type == MOUSEBUTTONDOWN:
-                # TODO: use mouse position to aim
-                Bullet((player.centerx - 5, player.centery - 5), (10, 10))
         if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
                 #print "Not Colliding!"
@@ -706,6 +711,15 @@ def game_loop():
                 camera.center = player.center
                 for obj in not_player:
                     moveRect(obj,-speed,0)
+        if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
+            player.shot_timer = default_shot_delay############################
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            mouse_x_distance = mouse_x - player.centerx
+            mouse_y_distance = mouse_y - player.centery
+            mouse_angle = math.atan2(mouse_y_distance, mouse_x_distance)
+            Bullet((player.centerx - 5, player.centery - 5), (10, 10),
+                   default_bullet_speed * math.cos(mouse_angle),
+                   default_bullet_speed * math.sin(mouse_angle))
         if board.goal == None:
             if len(Mobs) == 0:
                 board.goal = EndGoal(spawn,(40,40))
@@ -806,6 +820,7 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_w or event.key == K_UP:
                     if(menu_value > 0):
@@ -816,6 +831,7 @@ if __name__ == "__main__":
                 if event.key == K_RETURN:
                     if(menu_value == 1):
                         pygame.quit()
+                        sys.exit()
                     if(menu_value == 0):
                         flag = False
         c0 = cement
