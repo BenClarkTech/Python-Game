@@ -20,7 +20,7 @@ px=xpos#archaic variables for revision
 py=ypos
 default_speed = 3
 speed = default_speed
-default_bullet_speed = 15
+default_bullet_speed = 1
 default_shot_delay = 15
 #mob_direction = [-1, 0]
 CLOCK = 60
@@ -107,6 +107,46 @@ def moveRect_single_axis(rec,dx,dy,*args):
             return False
     #print "not Colliding"
     return True
+
+
+def moveTrueRect(rec,dx,dy,*args):
+    if dx != 0:
+        ret = moveTrueRect_single_axis(rec,dx,0,*args)
+        #print str(ret)+"({},{})".format(dx,dy)
+        return ret
+    if dy != 0:
+        ret = moveTrueRect_single_axis(rec,0,dy,*args)
+        #print str(ret)+"({},{})".format(dx,dy)
+        return ret
+
+def moveTrueRect_single_axis(rec,dx,dy,*args):
+    rec.realx += dx
+    rec.realy += dy
+    rec.x = int(round(rec.realx))
+    rec.y = int(round(rec.realy))
+    for arg in args:
+        #print str(args[0])+str(rec) #object debugging
+        if rec.colliderect(arg):
+            #print "Collision Detected"
+            if dx > 0:
+                rec.right = arg.left
+                #print "left bump"
+            if dx < 0:
+                rec.left = arg.right
+                #print "right bump"
+            if dy > 0:
+                rec.bottom = arg.top
+                #print "top bump"
+            if dy < 0:
+                rec.top = arg.bottom
+                #print "bottom bump"
+            #print "Colliding"
+            #print "Transformed -> "+str(args[0])+str(rec) #object debugging
+            return False
+    #print "not Colliding"
+    return True
+#End Function Definition
+#Begin Class Definition
 #End Function Definition
 #Begin Class Definition
 class Wall(Rect):
@@ -195,7 +235,7 @@ class Mob(Rect):
         print self.health
         self.health -= dmg
         print self.health
-        self.flash = 20
+        self.flash = 7
         if(self.health <= 0):
             self.remove()
             print "killed."
@@ -246,8 +286,10 @@ class Bullet(Rect):
             self.color = blue
         else:
             self.color = orange
-        self.x_speed = int(round(x_speed))
-        self.y_speed = int(round(y_speed))
+        self.x_speed = x_speed
+        self.y_speed = y_speed
+        self.realx = self.x
+        self.realy = self.y
         self.power = power
         self.owner = owner # could be things like "player", "mob", "trap"
         self.bounce = bounce # number of times bullet can bounce off walls
@@ -260,7 +302,7 @@ class Bullet(Rect):
 
     def move(self):
         # horizontal movement
-        if self.x_speed != 0 and not moveRect(self, self.x_speed, 0, *walls):
+        if self.x_speed != 0 and not moveTrueRect(self, self.x_speed, 0, *walls):
             if self.bounce == 0:
                 self.remove()
             else:
@@ -268,7 +310,7 @@ class Bullet(Rect):
                 if self.bounce > 0:
                     self.bounce -= 1
         # vertical movement
-        if self.y_speed != 0 and not moveRect(self, 0, self.y_speed, *walls):
+        if self.y_speed != 0 and not moveTrueRect(self, 0, self.y_speed, *walls):
             if self.bounce == 0:
                 self.remove()
             else:
