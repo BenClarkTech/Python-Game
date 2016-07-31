@@ -96,6 +96,15 @@ def fire_shot((x, y), (w, h), center_angle, speed, power, bounce, spread_count,
                speed * math.cos(angle), speed * math.sin(angle),
                power, bounce, owner, color)
 
+def get_angle((origin_x, origin_y), (target_x, target_y)):
+    """Return the angle of the vector from an origin position to a
+    target position.
+    """
+    x_distance = target_x - origin_x
+    y_distance = target_y - origin_y
+    angle = math.atan2(y_distance, x_distance)
+    return angle
+
 def getBounds(rec):
     """Takes in a rectangle and returns a list of the various bounds.
     [0] is x left bound, [1] is x right bound, [2] is y top bound
@@ -876,6 +885,8 @@ def game_loop():
                                 break
                             if event.key == K_q:
                                 terminate()
+
+        ### player movement ###
         if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
                 #print "Not Colliding!"
@@ -904,15 +915,16 @@ def game_loop():
                 camera.center = player.center
                 """for obj in not_player:
                     moveRect(obj,-speed,0)"""
+
+        ### player aiming and firing ###
         if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
             player.shot_timer = 1/player.fire_rate
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            mouse_x_distance = mouse_x - player.centerx
-            mouse_y_distance = mouse_y - player.centery
-            mouse_angle = math.atan2(mouse_y_distance, mouse_x_distance)
+            mouse_angle = get_angle(player.center, pygame.mouse.get_pos())
             fire_shot((player.centerx - 5, player.centery - 5), (10, 10),
                       mouse_angle, default_bullet_speed, 1, 0, player.shot_spread,
                       default_spread_angle, "player")
+
+        ### goal generation ###
         if board.goal == None:
             if len(Mobs) == 0:
                 board.goal = EndGoal(spawn,(40,40))
