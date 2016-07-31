@@ -1000,6 +1000,9 @@ def game_loop():
         for obj in not_player:
             obj.x -= camera.x
             obj.y -= camera.y
+            if type(obj) is Bullet:
+                obj.realx -= camera.x
+                obj.realy -= camera.y
             pygame.draw.rect(window, obj.color, obj)
 
 
