@@ -775,7 +775,7 @@ class Board(object):
             self.wash_board()
             rows = randint(1,4)
             collumns = randint(1,4)
-            board.remake(rows,collumns,level_up = 0)
+            self.remake(rows,collumns,level_up = 0)
         if flag2:
             potential_end.append((x,y))
 
