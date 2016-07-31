@@ -136,15 +136,23 @@ def moveRect_single_axis(rec,dx,dy,*args):
             #print "Collision Detected"
             if dx > 0:
                 rec.right = arg.left
+                if type(rec) is Bullet:
+                    rec.realx = rec.x
                 #print "left bump"
             if dx < 0:
                 rec.left = arg.right
+                if type(rec) is Bullet:
+                    rec.realx = rec.x
                 #print "right bump"
             if dy > 0:
                 rec.bottom = arg.top
+                if type(rec) is Bullet:
+                    rec.realy = rec.y
                 #print "top bump"
             if dy < 0:
                 rec.top = arg.bottom
+                if type(rec) is Bullet:
+                    rec.realy = rec.y
                 #print "bottom bump"
             #print "Colliding"
             #print "Transformed -> "+str(args[0])+str(rec) #object debugging
