@@ -33,8 +33,8 @@ CameraY = 0
 cX = CameraX#archaic variables for revision
 cY = CameraY
 
-winX = 640
-winY = 600
+winX = 1200
+winY = 900
     #Colors:
 red = (230,50,50)
 purple = (128,0,128)
@@ -69,6 +69,7 @@ BigSpeed = []
 mob_gate = []
 Fire = []
 Buck = []
+potential_end = []
 
 #End Constand Definition
 #Begin Function Definition
@@ -292,10 +293,7 @@ class Mob(Rect):
         print self.health
         self.flash = 5
         if(self.health <= 0):
-            x = randint(0,1)
-            y = randint(0,1)
-            if x == 1 or y == 1:
-                GetPowerup(self.x,self.y)
+            GetPowerup(self.x,self.y)
             self.remove()
             print "killed."
 
@@ -325,9 +323,9 @@ class MobBoss(Mob):
             self.at_quarter_health = True
             self.w = self.w/2
             self.h = self.h/2
-            self.speed *= 2
+            self.speed *= 1.5
             newmob2 = MobBoss((self.x,self.y),(self.w,self.h))
-            newmob2.speed *= 4
+            newmob2.speed *= 3
             newmob2.health = 25
             newmob2.at_half_health = True
             newmob2.at_quarter_health = True
@@ -553,6 +551,7 @@ class Room(object):
     def GetBossCover(self):
         covers = 4
         cover_model = randint(1,covers)
+        cover_model = 2
         if cover_model == 0:
             return
         elif cover_model == 1: #One Box Center
@@ -601,6 +600,7 @@ class Board(object):
         self.generate()
         
     def generate(self):
+        global potential_end
         print "Generating new board"
         if(self.level != 0 and self.level%5 == 4):
             self.generateBoss()
@@ -669,12 +669,11 @@ class Board(object):
         print "Checking rooms"
         #checker to get all passable terrain
         self.rooms = rooms
+        potential_end = []
         self.checker(0,0);
         #Would be nice to implement a gating mechanism which opens if the room is completed.
         #pick a room to set the endpoint in
-        end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1) #Endpoint is some random room on the board.
-        while (end_point == (0,0) and self.collumns != 0 and self.rows != 0) or rooms[end_point[0]][end_point[1]].checked != True: 
-            end_point = (randint(1,self.collumns)-1,randint(1,self.rows)-1)
+        end_point = choice(potential_end) #Endpoint is some random room on the board.
         #creates the end point
         self.goal = EndGoal((0,0),(40,40))
         print end_point #debugging location of endpoint
@@ -698,15 +697,15 @@ class Board(object):
                 if room.level == 0 and room.checked == True and room != rooms[end_point[0]][end_point[1]]:
                     if randint(0,9) == 9:
                         number_big = 1 #if you add a new big event increment this
-                        choice = randint(1,number_big)
-                        if choice == 1:
+                        x = randint(1,number_big)
+                        if x == 1:
                             events.append(SpeedB((0,0),(100,100)))
                             events[len(events)-1].center = room.center
                         #addnew big events here as an elif
                     elif randint(4,4) == 4:
                         number_small = 1 #if you add a new small event increment this
-                        choice = randint(1,number_small)
-                        if choice == 1:
+                        x = randint(1,number_small)
+                        if x == 1:
                             events.append(SpeedS((0,0),(50,50)))
                             events[len(events)-1].center = room.center
                         #addnew small events here as an elif
@@ -743,28 +742,42 @@ class Board(object):
         self.generate()
         self.level += level_up
 
-    def checker(self,x,y):
-        print "Checking iteration" + str(x) + str(y)
+    def checker(self,x,y,flag = False):
         self.rooms[x][y].checked = True
+        flag2 = True
         #self.rooms[x][y].SetFloor(chocolate)
         #print str(x)+" "+str(y)
         if self.rooms[x][y].N:
+            flag = True
             print "N" + str(x) + str(y)
             if self.rooms[x][y-1].checked == False:
-                self.checker(x,y-1)
+                flag2 = False
+                self.checker(x,y-1,True)
         if self.rooms[x][y].S:
+            flag = True
             print "S" + str(x) + str(y)
             if self.rooms[x][y+1].checked == False:
-                self.checker(x,y+1)
+                flag2 = False
+                self.checker(x,y+1,True)
         if self.rooms[x][y].E:
+            flag = True
             print "E" + str(x) + str(y)
             if self.rooms[x+1][y].checked == False:
-                self.checker(x+1,y)
+                flag2 = False
+                self.checker(x+1,y,True)
         if self.rooms[x][y].W:
+            flag = True
             print "W" + str(x) + str(y)
             if self.rooms[x-1][y].checked == False:
-                self.checker(x-1,y)
-        print "Checking cleared!"
+                flag2 = False
+                self.checker(x-1,y,True)
+        if not flag:
+            self.wash_board()
+            rows = randint(1,4)
+            collumns = randint(1,4)
+            board.remake(rows,collumns,level_up = 0)
+        if flag2:
+            potential_end.append((x,y))
 
     def generateBoss(self):
         self.rooms = []
@@ -779,9 +792,7 @@ class Board(object):
 clock = pygame.time.Clock()
 
 window = pygame.display.set_mode([winX,winY])
-camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anything after initializing the scene*****not true anymore technically?
-pygame.display.set_caption("WREKT-angle")
-pygame.display.flip()
+camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anythind
 
 #text initialization:
 body = pygame.font.Font(None, 36)
@@ -802,18 +813,18 @@ def game_loop():
     BigSpeed = []"""
     timer = 0
     #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
-    player = Player((xpos - camera.x,ypos - camera.y), (40,40))
+    player = Player((xpos,ypos), (40,40))
     #room generation:
     rows = randint(1,10)
     collumns = randint(1,10)
-
+    
     rows = 2
     collumns = 2
     board = Board(rows, collumns)
     #mobs:
     #mob = mob((300,11), (40,40))
     #centers camera at start
-    player.center = camera.center#comment out to allow skewed camera
+    camera.center = player.center#comment out to allow skewed camera
     count = 0
 
 
@@ -969,7 +980,7 @@ def game_loop():
                 powerup.remove()
         for powerup in Fire:
             if player.colliderect(powerup):
-                player.fire_rate += 2/default_shot_delay
+                player.fire_rate += 4/40
                 powerup.remove()
                 
     #Painting of scene:
