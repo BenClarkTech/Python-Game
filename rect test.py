@@ -1033,6 +1033,9 @@ def game_loop():
         for obj in not_player:
             obj.x += camera.x
             obj.y += camera.y
+            if type(obj) is Bullet:
+                obj.realx += camera.x
+                obj.realy += camera.y
         player.x += camera.x
         player.y += camera.y
         #What's better, .update() or .flip()?
