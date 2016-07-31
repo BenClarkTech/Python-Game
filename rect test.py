@@ -969,7 +969,7 @@ def game_loop():
                 powerup.remove()
         for powerup in Fire:
             if player.colliderect(powerup):
-                player.fire_rate += 2/40
+                player.fire_rate += 2/default_shot_delay
                 powerup.remove()
                 
     #Painting of scene:
