@@ -547,7 +547,7 @@ class Room(object):
             wall.remove()
         
     def GetCover(self):
-        covers = 3
+        covers = 5
         cover_model = randint(0,covers)
         if cover_model == 0:
             return
@@ -565,6 +565,17 @@ class Room(object):
             self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
+        elif cover_model == 4:
+            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.35),(self.w*.7,self.h*.03)))
+            self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.15),(self.w*.7,self.h*.03)))
+            self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.65),(self.w*.7,self.h*.03)))
+            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.85),(self.w*.7,self.h*.03)))
+        elif cover_model == 5:
+            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
+            self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
+            self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
+            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.74),(self.w*.5,self.h*.05)))
+
 
     def GetBossCover(self):
         covers = 6
