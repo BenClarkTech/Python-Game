@@ -55,7 +55,8 @@ obsidian =  (6,6,6)
 gold = (205, 173, 0)
 light_yellow = (238, 238, 180)
 dark_red = (127,0,0)
-mob1_color = (127,0,10)
+mobBOSS_color = (130,10,10)
+mob1_color = (190,0,10)
 mob2_color = (130,0,30)
 mob3_color = (128,0,50)
 mob4_color = (127,0,70)
@@ -284,6 +285,8 @@ class Mob(Rect):
         self.shot_spread = 1
         self.fire_rate = 1/default_shot_delay
         self.fire_angle = randint(0, 359)* 1.0
+        if mob_type == 0: #boss type
+            self.real_color = mobBOSS_color
         if mob_type == 1:
             self.real_color = mob1_color
         if mob_type == 2:
@@ -335,9 +338,10 @@ class Mob(Rect):
 
 class MobBoss(Mob):
     def __init__(self,(x, y) = (0,0), (w, h) = (0,0), speed_scale = 1, level=0, *args, **kwargs):
-        super(MobBoss, self).__init__((x,y),(w,h),speed_scale,*args,**kwargs)
+        super(MobBoss, self).__init__(0, (x,y),(w,h),speed_scale,*args,**kwargs)
         stage = level/5
         self.health = 100
+        self.boss_timer = 0.0
         self.speed = default_speed * .5
         self.at_half_health = False
         self.at_quarter_health = False
@@ -1022,6 +1026,29 @@ def game_loop():
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
                               mob.fire_angle, default_bullet_speed-1, 1, 2, mob.shot_spread,
                               default_spread_angle, "mob")
+
+                if mob.type == 0: #boss type
+                    mob.color = mob.real_color
+                    mob.move()
+                    mob.boss_timer += .01
+
+                    if mob.boss_timer < 100:
+                        pass
+                    if mob.boss_timer %300 == 0:
+                        mob.color = (50,90,30)
+                        for i in range (0, 360):
+                            fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
+                              i, default_bullet_speed-5, 1, 0, mob.shot_spread,
+                              default_spread_angle, "mob")
+
+                    if mob.boss_timer %200 == 0:
+                        mob.fire_angle = get_angle((mob.centerx, mob.centery), (player.centerx, player.centery))
+                        fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
+                              mob.fire_angle, default_bullet_speed-1, 1, 5, mob.shot_spread,
+                              default_spread_angle, "mob")
+                    
+                    
+                    
                                     
         # bullet movement and damage (currently only checks for "player" owner)
         for bullet in bullets:
