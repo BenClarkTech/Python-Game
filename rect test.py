@@ -1144,7 +1144,7 @@ def game_loop():
             model = Rect((0,0),(40,40))
             model.center = powerup.center
             window.blit(hp_i,(model.x,model.y))
-        if board.goal != None
+        if board.goal != None:
             window.blit(flag_i,(board.goal.x, board.goal.y))
         player.x -= camera.x
         player.y -= camera.y
