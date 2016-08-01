@@ -1109,21 +1109,6 @@ if __name__ == "__main__":
     menu_value = 0
     flag = True
     while flag:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                terminate()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == K_w or event.key == K_UP:
-                    if(menu_value > 0):
-                        menu_value -= 1
-                if event.key == K_s or event.key == K_DOWN:
-                    if(menu_value < 1):
-                        menu_value += 1
-                if event.key == K_RETURN:
-                    if(menu_value == 1):
-                        terminate()
-                    if(menu_value == 0):
-                        flag = False
         c0 = cement
         c1 = cement
         if(menu_value == 0):
@@ -1142,6 +1127,21 @@ if __name__ == "__main__":
         textpos.y += 130
         window.blit(text,textpos)
         pygame.display.update()
+        event = pygame.event.wait()
+        if event.type == QUIT:
+            terminate()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == K_w or event.key == K_UP:
+                if(menu_value > 0):
+                    menu_value -= 1
+            if event.key == K_s or event.key == K_DOWN:
+                if(menu_value < 1):
+                    menu_value += 1
+            if event.key == K_RETURN:
+                if(menu_value == 1):
+                    terminate()
+                if(menu_value == 0):
+                    flag = False
     while True:
         game_loop()
         text = header.render(" You have died!", 1, purple)
