@@ -285,11 +285,12 @@ class Mob(Rect):
         self.fire_rate = 1/default_shot_delay
         self.fire_angle = randint(0, 359)* 1.0
         if mob_type == 1:
-            self.color = mob1_color
+            self.real_color = mob1_color
         if mob_type == 2:
-            self.color = mob2_color
+            self.real_color = mob2_color
         if mob_type == 3:
-            self.color = mob3_color
+            self.real_color = mob3_color
+        self.color = self.real_color
         
     #def __call__(self, *args, **kwargs):
     #    return mob.__init__(self, *args, **kwargs)
@@ -997,14 +998,15 @@ def game_loop():
                     mob.color = (128,40,40)
                     mob.flash -= 1
                 else:
-                    mob.color = mob.color
+                   mob.color = mob.real_color
+                        
                 if mob.type == 1 or mob.type == 3:
                     mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
                     player.color = light_blue
                     player.damage_cd = 1 * 60
-                if mob.type == 2 and mob.shot_timer == 0:
+                if mob.type == 2:
                     mob.fire_angle += .05;
                     if mob.fire_angle >= 360:
                         mob.fire_angle = 0
