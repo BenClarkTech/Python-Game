@@ -554,9 +554,9 @@ class Room(object):
         elif cover_model == 1: #One Box Center
             self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.3),(self.w*.4,self.h*.4)))
         elif cover_model == 2: #Three Box Center
-            self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
-            self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
-            self.Walls.append(Wall((self.x + .35 * self.w, self.y + .6 * self.h),(.3*self.w,.3*self.h)))
+            self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.26*self.w,.26*self.h)))
+            self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.26*self.w,.26*self.h)))
+            self.Walls.append(Wall((self.x + .35 * self.w, self.y + .6 * self.h),(.26*self.w,.26*self.h)))
         elif cover_model == 3: #Four corner boxes
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
@@ -688,8 +688,7 @@ class Board(object):
         #checker to get all passable terrain
         self.rooms = rooms
         potential_end = []
-        if self.checker(0,0) != 0:
-            return
+        self.checker(0,0);
         #Would be nice to implement a gating mechanism which opens if the room is completed.
         #pick a room to set the endpoint in
         end_point = choice(potential_end) #Endpoint is some random room on the board.
@@ -795,10 +794,8 @@ class Board(object):
             rows = randint(1,4)
             collumns = randint(1,4)
             self.remake(rows,collumns,level_up = 0)
-            return -1
         if flag2:
             potential_end.append((x,y))
-        return 0
 
     def generateBoss(self):
         self.rooms = []
