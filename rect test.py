@@ -565,12 +565,12 @@ class Room(object):
             self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
-        elif cover_model == 4:
+       elif cover_model == 4: # 4 bar room
             self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.35),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.15),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.65),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.85),(self.w*.7,self.h*.03)))
-        elif cover_model == 5:
+        elif cover_model == 5: #two bars, two side boxes
             self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
             self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
             self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
@@ -600,16 +600,7 @@ class Room(object):
         elif cover_model == 4: #CrossRoom
             self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
             self.Walls.append(Wall((self.x+self.w*.35,self.y + self.h*.49),(self.w*.3,self.h*.02)))
-        elif cover_model == 5: # 4 bar room
-            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.35),(self.w*.7,self.h*.03)))
-            self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.15),(self.w*.7,self.h*.03)))
-            self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.65),(self.w*.7,self.h*.03)))
-            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.85),(self.w*.7,self.h*.03)))
-        elif cover_model == 6: #two bars, two side boxes
-            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
-            self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
-            self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
-            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.74),(self.w*.5,self.h*.05)))
+ 
 
     
 
