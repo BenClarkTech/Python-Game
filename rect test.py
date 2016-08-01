@@ -1030,11 +1030,9 @@ def game_loop():
                 if mob.type == 0: #boss type
                     mob.color = mob.real_color
                     mob.move()
-                    mob.boss_timer += .01
+                    mob.boss_timer += .5
 
-                    if mob.boss_timer < 100:
-                        pass
-                    if mob.boss_timer %300 == 0:
+                    if mob.boss_timer %200 == 0:
                         mob.color = (50,90,30)
                         for i in range (0, 360):
                             fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
@@ -1042,6 +1040,7 @@ def game_loop():
                               default_spread_angle, "mob")
 
                     if mob.boss_timer %200 == 0:
+                        mob.color = (80,00,90)
                         mob.fire_angle = get_angle((mob.centerx, mob.centery), (player.centerx, player.centery))
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
                               mob.fire_angle, default_bullet_speed-1, 1, 5, mob.shot_spread,
