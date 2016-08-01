@@ -1054,8 +1054,10 @@ def game_loop():
                     mob.color = mob.real_color
                     mob.move()
                     mob.boss_timer += .5
+                    if mob.boss_timer >= 10000000:
+                        mob.boss_timer = 0
 
-                    if mob.boss_timer %250 == 0: #ring of death
+                    if mob.boss_timer %300 == 0: #ring of death
                         mob.color = (50,90,30)
                         for i in range (0, 360, 20):
                             fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
