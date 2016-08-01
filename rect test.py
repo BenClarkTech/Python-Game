@@ -578,7 +578,7 @@ class Room(object):
 
 
     def GetBossCover(self):
-        covers = 6
+        covers = 4
         cover_model = randint(1,covers)
         cover_model = 2
         if cover_model == 0:
