@@ -56,11 +56,11 @@ gold = (205, 173, 0)
 light_yellow = (238, 238, 180)
 dark_red = (127,0,0)
 mob1_color = (127,0,10)
-mob2_color = (130,0,20)
-mob3_color = (128,0,30)
-mob4_color = (127,0,40)
-mob5_color = (127,0,50)
-mob5_color = (127,0,60)
+mob2_color = (130,0,30)
+mob3_color = (128,0,50)
+mob4_color = (127,0,70)
+mob5_color = (127,0,90)
+mob5_color = (127,0,110)
 
 
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
@@ -280,7 +280,7 @@ class Mob(Rect):
         self.speed = default_speed * .5 * speed_scale
         self.health = 5
         self.flash = 0
-        self.shot_timer = 0
+        self.shot_timer = randint(0, 15)
         self.shot_spread = 1
         self.fire_rate = 1/default_shot_delay
         self.fire_angle = randint(0, 359)* 1.0
