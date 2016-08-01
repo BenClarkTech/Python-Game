@@ -358,7 +358,7 @@ class MobBoss(Mob):
     def takeDmg(self,dmg=1):
         global spawn
         self.health -= dmg
-        self.flash = 20
+        self.flash = 5
         if(self.at_half_health == False and self.health <= 50):
             self.at_half_health = True
             self.w = self.w/2
@@ -530,7 +530,11 @@ class Room(object):
         chunk = (1-gap)/2 #size of a piece of the wall on a gap side
         self.chunk = chunk #optimization: replace chunk w/ self.chunk
         self.level = level
-        self.level = (randint(0,2) + level) * randint(0,1)
+        if (randint(0,3) == 0):
+            s = 0
+        else:
+            s = 1
+        self.level = (randint(0,2) + level) * s
         self.checked = False
         (self.x,self.y) = position
         (self.w,self.h) = size
@@ -897,11 +901,8 @@ def game_loop():
     #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
     player = Player((xpos,ypos), (40,40))
     #room generation:
-    rows = randint(1,10)
-    collumns = randint(1,10)
-    
-    rows = 2
-    collumns = 2
+    rows = randint(1,4)
+    collumns = randint(1,4)
     board = Board(rows, collumns)
     #mobs:
     #mob = mob((300,11), (40,40))
@@ -1006,8 +1007,8 @@ def game_loop():
                 #print "next board"
                 board.wash_board()
                 #print walls
-                rows = randint(1,4)
-                collumns = randint(1,4)
+                rows = randint(1,3)
+                collumns = randint(1,3)
                 board.remake(rows,collumns,level_up = 1)
                 player.x = xpos
                 player.y = ypos
