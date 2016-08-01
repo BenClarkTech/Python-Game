@@ -264,15 +264,20 @@ class Player(Rect):
         self.fire_rate = 1/default_shot_delay
 
 class Mob(Rect):
-    def __init__(self, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
+    def __init__(self, mob_type=1, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
         super(Mob, self).__init__((x,y),(w,h),*args, **kwargs)
         not_player.append(self)
         Mobs.append(self)
+        self.type = mob_type
         self.direction = [randint(1,4),0]
         self.color = dark_red
         self.speed = default_speed * .5 * speed_scale
         self.health = 5
         self.flash = 0
+        self.shot_timer = 0
+        self.shot_spread = 1
+        self.fire_rate = 1/default_shot_delay
+        self.fire_angle = randint(0, 359)* 1.0
         
     #def __call__(self, *args, **kwargs):
     #    return mob.__init__(self, *args, **kwargs)
@@ -551,8 +556,10 @@ class Room(object):
         cover_model = randint(0,covers)
         if cover_model == 0:
             return
-        elif cover_model == 1: #One Box Center
-            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.3),(self.w*.4,self.h*.4)))
+        elif cover_model == 1: #One Box Off-Center
+            randx = choice([.1, .6])
+            randy = choice([.1, .6])
+            self.Walls.append(Wall((self.x+self.w*randx,self.y+self.h*randy),(self.w*.3,self.h*.3)))
         elif cover_model == 2: #Three Box Center
             self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
             self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
@@ -605,10 +612,12 @@ class Room(object):
     
 
     def GetMobs(self):
-        decide = 1#randint(0, 1)
-        if decide == 1:
-            ran = randint(0,15)
-            self.Mobs.append(Mob((self.x+150,self.y+100), (30 + ran,30 + ran), 1 + self.level/5))
+        num_mobs = 2
+        mob_type = randint(1, num_mobs)
+        ran = randint(0,15)
+        self.Mobs.append(Mob(mob_type,(self.x+227,self.y+227), (30 + ran,30 + ran), 1 + self.level/5))
+
+            
 
     def GetBoss(self,level):
         self.Mobs.append(MobBoss((0,0),(200,200)))
@@ -970,18 +979,27 @@ def game_loop():
                 #move player to start position
                 #regenerate a board
 
-                ##### mob movement && damage###
+                ##### mob movement && damage && such###
         for mob in Mobs:
                 if(mob.flash != 0):
                     mob.color = (128,40,40)
                     mob.flash -= 1
                 else:
                     mob.color = dark_red
-                mob.move()
+                if mob.type == 1:
+                    mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
                     player.color = light_blue
                     player.damage_cd = 1 * 60
+                if mob.type == 2 and mob.shot_timer == 0:
+                    mob.fire_angle += .05;
+                    if mob.fire_angle >= 360:
+                        mob.fire_angle = 0;
+                    fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
+                          mob.fire_angle, default_bullet_speed, 1, 0, mob.shot_spread,
+                          default_spread_angle, "mob")
+                    
         # bullet movement and damage (currently only checks for "player" owner)
         for bullet in bullets:
             bullet.move()
@@ -1077,6 +1095,21 @@ if __name__ == "__main__":
     menu_value = 0
     flag = True
     while flag:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == K_w or event.key == K_UP:
+                    if(menu_value > 0):
+                        menu_value -= 1
+                if event.key == K_s or event.key == K_DOWN:
+                    if(menu_value < 1):
+                        menu_value += 1
+                if event.key == K_RETURN:
+                    if(menu_value == 1):
+                        terminate()
+                    if(menu_value == 0):
+                        flag = False
         c0 = cement
         c1 = cement
         if(menu_value == 0):
@@ -1095,21 +1128,6 @@ if __name__ == "__main__":
         textpos.y += 130
         window.blit(text,textpos)
         pygame.display.update()
-        event = pygame.event.wait()
-        if event.type == QUIT:
-            terminate()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == K_w or event.key == K_UP:
-                if(menu_value > 0):
-                    menu_value -= 1
-            if event.key == K_s or event.key == K_DOWN:
-                if(menu_value < 1):
-                    menu_value += 1
-            if event.key == K_RETURN:
-                if(menu_value == 1):
-                    terminate()
-                if(menu_value == 0):
-                    flag = False
     while True:
         game_loop()
         text = header.render(" You have died!", 1, purple)
