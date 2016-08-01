@@ -688,7 +688,8 @@ class Board(object):
         #checker to get all passable terrain
         self.rooms = rooms
         potential_end = []
-        self.checker(0,0);
+        if self.checker(0,0) != 0:
+            return
         #Would be nice to implement a gating mechanism which opens if the room is completed.
         #pick a room to set the endpoint in
         end_point = choice(potential_end) #Endpoint is some random room on the board.
@@ -794,8 +795,10 @@ class Board(object):
             rows = randint(1,4)
             collumns = randint(1,4)
             self.remake(rows,collumns,level_up = 0)
+            return -1
         if flag2:
             potential_end.append((x,y))
+        return 0
 
     def generateBoss(self):
         self.rooms = []
