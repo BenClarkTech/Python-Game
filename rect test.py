@@ -1112,6 +1112,7 @@ def game_loop():
             if player.colliderect(powerup):
                 player.hpboost += 1
                 player.health = player.hpboost + default_hp
+                powerup.remove()
                 
     #Painting of scene:
         window.fill(bg_gray)
@@ -1143,7 +1144,8 @@ def game_loop():
             model = Rect((0,0),(40,40))
             model.center = powerup.center
             window.blit(hp_i,(model.x,model.y))
-        window.blit(flag_i,(board.goal.x, board.goal.y))
+        if board.goal != None
+            window.blit(flag_i,(board.goal.x, board.goal.y))
         player.x -= camera.x
         player.y -= camera.y
         camera.center = player.center
