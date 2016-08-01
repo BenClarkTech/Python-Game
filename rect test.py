@@ -1034,12 +1034,12 @@ def game_loop():
 
                     if mob.boss_timer %200 == 0:
                         mob.color = (50,90,30)
-                        for i in range (0, 360):
+                        for i in range (0, 360, 5):
                             fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
                               i, default_bullet_speed-5, 1, 0, mob.shot_spread,
                               default_spread_angle, "mob")
 
-                    if mob.boss_timer %200 == 0:
+                    if mob.boss_timer %50 == 0:
                         mob.color = (80,00,90)
                         mob.fire_angle = get_angle((mob.centerx, mob.centery), (player.centerx, player.centery))
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
