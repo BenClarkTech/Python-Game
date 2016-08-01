@@ -547,16 +547,16 @@ class Room(object):
             wall.remove()
         
     def GetCover(self):
-        covers = 5
+        covers = 3
         cover_model = randint(0,covers)
         if cover_model == 0:
             return
         elif cover_model == 1: #One Box Center
             self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.3),(self.w*.4,self.h*.4)))
         elif cover_model == 2: #Three Box Center
-            self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.26*self.w,.26*self.h)))
-            self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.26*self.w,.26*self.h)))
-            self.Walls.append(Wall((self.x + .35 * self.w, self.y + .6 * self.h),(.26*self.w,.26*self.h)))
+            self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
+            self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
+            self.Walls.append(Wall((self.x + .35 * self.w, self.y + .6 * self.h),(.3*self.w,.3*self.h)))
         elif cover_model == 3: #Four corner boxes
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
@@ -565,19 +565,9 @@ class Room(object):
             self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
-        elif cover_model == 4:
-            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.35),(self.w*.7,self.h*.03)))
-            self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.15),(self.w*.7,self.h*.03)))
-            self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.65),(self.w*.7,self.h*.03)))
-            self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.85),(self.w*.7,self.h*.03)))
-        elif cover_model == 5:
-            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
-            self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
-            self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
-            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.74),(self.w*.5,self.h*.05)))
 
     def GetBossCover(self):
-        covers = 5
+        covers = 4
         cover_model = randint(1,covers)
         cover_model = 2
         if cover_model == 0:
@@ -599,12 +589,6 @@ class Room(object):
         elif cover_model == 4: #CrossRoom
             self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
             self.Walls.append(Wall((self.x+self.w*.35,self.y + self.h*.49),(self.w*.3,self.h*.02)))
-        elif cover_model == 5: #bars and boxes
-            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
-            self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
-            self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
-            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.74),(self.w*.5,self.h*.05)))
-
     
 
     def GetMobs(self):
@@ -704,7 +688,8 @@ class Board(object):
         #checker to get all passable terrain
         self.rooms = rooms
         potential_end = []
-        self.checker(0,0);
+        if self.checker(0,0) != 0:
+            return
         #Would be nice to implement a gating mechanism which opens if the room is completed.
         #pick a room to set the endpoint in
         end_point = choice(potential_end) #Endpoint is some random room on the board.
@@ -810,8 +795,10 @@ class Board(object):
             rows = randint(1,4)
             collumns = randint(1,4)
             self.remake(rows,collumns,level_up = 0)
+            return -1
         if flag2:
             potential_end.append((x,y))
+        return 0
 
     def generateBoss(self):
         self.rooms = []
@@ -1017,7 +1004,7 @@ def game_loop():
                 powerup.remove()
         for powerup in Fire:
             if player.colliderect(powerup):
-                player.fire_rate += 4/default_shot_delay
+                player.fire_rate += .5/default_shot_delay
                 powerup.remove()
                 
     #Painting of scene:
@@ -1072,6 +1059,7 @@ def game_loop():
     
 if __name__ == "__main__":
     pygame.init()
+    title = pygame.image.load("TitleScreen.png")
     menu_value = 0
     flag = True
     while flag:
@@ -1096,15 +1084,16 @@ if __name__ == "__main__":
             c0 = player_blue
         if(menu_value == 1):
             c1 = player_blue
+        window.blit(title, (0,0))
         text = subhead.render("Play Game", 1, c0)
         textpos = text.get_rect()
         textpos.center = camera.center
-        textpos.y -= 100
+        textpos.y += 20
         window.blit(text,textpos)
         text = subhead.render("Quit", 1, c1)
         textpos = text.get_rect()
         textpos.center = camera.center
-        textpos.y += 100
+        textpos.y += 130
         window.blit(text,textpos)
         pygame.display.update()
     while True:
