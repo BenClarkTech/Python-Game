@@ -656,7 +656,10 @@ class Room(object):
 
     def GetMobs(self):
         num_mobs = 3
-        mob_type = randint(1, num_mobs)
+        if self.level <= 3:
+            mob_type = (randint(0, self.level)+1)
+        else:
+            mob_type = randint(1, num_mobs)
         ran = randint(0,15)
         self.Mobs.append(Mob(mob_type,(self.x+227,self.y+227), (30 + ran,30 + ran), 1 + self.level/5))
 
