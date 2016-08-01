@@ -270,7 +270,6 @@ class Mob(Rect):
         Mobs.append(self)
         self.type = mob_type
         self.direction = [randint(1,4),0]
-        self.color = dark_red
         self.speed = default_speed * .5 * speed_scale
         self.health = 5
         self.flash = 0
@@ -278,6 +277,12 @@ class Mob(Rect):
         self.shot_spread = 1
         self.fire_rate = 1/default_shot_delay
         self.fire_angle = randint(0, 359)* 1.0
+        if mob_type == 1:
+            self.color = dark_red
+        if mob_type == 2:
+            self.color = light_green
+        if mob_type == 3:
+            self.color = purple
         
     #def __call__(self, *args, **kwargs):
     #    return mob.__init__(self, *args, **kwargs)
@@ -612,7 +617,7 @@ class Room(object):
     
 
     def GetMobs(self):
-        num_mobs = 2
+        num_mobs = 3
         mob_type = randint(1, num_mobs)
         ran = randint(0,15)
         self.Mobs.append(Mob(mob_type,(self.x+227,self.y+227), (30 + ran,30 + ran), 1 + self.level/5))
@@ -986,7 +991,7 @@ def game_loop():
                     mob.flash -= 1
                 else:
                     mob.color = dark_red
-                if mob.type == 1:
+                if mob.type == 1 or mob.type == 3:
                     mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
@@ -995,11 +1000,20 @@ def game_loop():
                 if mob.type == 2 and mob.shot_timer == 0:
                     mob.fire_angle += .05;
                     if mob.fire_angle >= 360:
-                        mob.fire_angle = 0;
+                        mob.fire_angle = 0
                     fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
                           mob.fire_angle, default_bullet_speed, 1, 0, mob.shot_spread,
                           default_spread_angle, "mob")
-                    
+                if mob.type == 3:
+                    if mob.shot_timer > 0:
+                        mob.shot_timer -= .1
+                    mob.fire_angle = get_angle((mob.centerx, mob.centery), (player.centerx, player.centery))
+                    if mob.shot_timer <= 0:
+                        mob.shot_timer = 10
+                        fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
+                              mob.fire_angle, default_bullet_speed-1, 1, 0, mob.shot_spread,
+                              default_spread_angle, "mob")
+                                    
         # bullet movement and damage (currently only checks for "player" owner)
         for bullet in bullets:
             bullet.move()
