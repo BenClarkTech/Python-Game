@@ -1024,7 +1024,7 @@ def game_loop():
                     if mob.shot_timer <= 0:
                         mob.shot_timer = 10
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
-                              mob.fire_angle, default_bullet_speed-1, 1, 2, mob.shot_spread,
+                              mob.fire_angle, default_bullet_speed-6, 1, 2, mob.shot_spread,
                               default_spread_angle, "mob")
 
                 if mob.type == 0: #boss type
@@ -1036,14 +1036,14 @@ def game_loop():
                         mob.color = (50,90,30)
                         for i in range (0, 360, 5):
                             fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
-                              i, default_bullet_speed-5, 1, 0, mob.shot_spread,
+                              i, default_bullet_speed-12, 1, 0, mob.shot_spread,
                               default_spread_angle, "mob")
 
                     if mob.boss_timer %100 == 0: #bouncing shot
                         mob.color = (80,00,90)
                         mob.fire_angle = get_angle((mob.centerx, mob.centery), (player.centerx, player.centery))
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
-                              mob.fire_angle, default_bullet_speed-1, 1, 5, mob.shot_spread,
+                              mob.fire_angle, default_bullet_speed-10, 1, 5, mob.shot_spread,
                               default_spread_angle, "mob")
                     
                     
