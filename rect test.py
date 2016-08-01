@@ -19,6 +19,7 @@ ypos = 280
 px=xpos#archaic variables for revision
 py=ypos
 default_speed = 4
+default_hp = 3
 speed = default_speed
 default_bullet_speed = 15
 default_shot_delay = 40.0
@@ -63,7 +64,13 @@ mob4_color = (127,0,70)
 mob5_color = (127,0,90)
 mob5_color = (127,0,110)
 
-
+#images:
+flag_i = pygame.image.load("Flag.png")
+small_i = pygame.image.load("SmallS.png")
+large_i = pygame.image.load("LargeS.png")
+buck_i = pygame.image.load("BuckShot.png")
+rate_i = pygame.image.load("FireRate.png")
+hp_i = pygame.image.load("HP.png")
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
 
@@ -77,6 +84,7 @@ SmallSpeed = []
 BigSpeed = []
 mob_gate = []
 Fire = []
+HealthBlock = []
 Buck = []
 potential_end = []
 
@@ -265,7 +273,8 @@ class Player(Rect):
     def __init__(self, *args, **kwargs):
         super(Player, self).__init__(*args, **kwargs)
         self.color = player_blue
-        self.health = 3
+        self.health = default_hp
+        self.hpboost = 0
         self.damage_cd = 0
         self.shot_timer = 0
         self.shot_spread = 1
@@ -471,12 +480,14 @@ class SpeedB(Rect):
 
 #Power Up Blocks
 def GetPowerup(x,y):
-    numUPs = 2
+    numUPs = 3
     z = randint(1,numUPs)
     if z == 1:
         powerup = BuckShotUP((x,y),(40,40))
     if z == 2:
         powerup = FireRateUP((x,y),(40,40))
+    if z == 3:
+        powerup = Hp((x,y),(40,40))
 
 class BuckShotUP(Rect):
     def __init__(self, *args, **kwargs):
@@ -499,6 +510,17 @@ class FireRateUP(Rect):
     def remove(self):
         not_player.remove(self)
         Fire.remove(self)
+
+class Hp(Rect):
+    def __init__(self,*args,**kwargs):
+        super(Hp,self).__init__(*args,**kwargs)
+        not_player.append(self)
+        HealthBlock.append(self)
+        self.color = white
+
+    def remove(self):
+        not_player.remove(self)
+        HealthBlock.remove(self)
 
 #End Power Up Blocks
         
@@ -1034,7 +1056,7 @@ def game_loop():
 
                     if mob.boss_timer %250 == 0: #ring of death
                         mob.color = (50,90,30)
-                        for i in range (0, 360, 5):
+                        for i in range (0, 360, 20):
                             fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
                               i, default_bullet_speed-12, 1, 0, mob.shot_spread,
                               default_spread_angle, "mob")
@@ -1084,8 +1106,12 @@ def game_loop():
                 powerup.remove()
         for powerup in Fire:
             if player.colliderect(powerup):
-                player.fire_rate += .5/default_shot_delay
+                player.fire_rate += .25/default_shot_delay
                 powerup.remove()
+        for powerup in HealthBlock:
+            if player.colliderect(powerup):
+                player.hpboost += 1
+                player.health = player.hpboost + default_hp
                 
     #Painting of scene:
         window.fill(bg_gray)
@@ -1097,8 +1123,27 @@ def game_loop():
                 obj.realy -= camera.y
             if obj.colliderect(camera):
                 pygame.draw.rect(window, obj.color, obj)
-
-
+        for event in BigSpeed: 
+            model = Rect((0,0),(40,40))
+            model.center = event.center
+            window.blit(large_i,(model.x,model.y))
+        for event in SmallSpeed:
+            model = Rect((0,0),(40,40))
+            model.center = event.center
+            window.blit(small_i,(model.x,model.y))
+        for powerup in Buck: 
+            model = Rect((0,0),(40,40))
+            model.center = powerup.center
+            window.blit(buck_i,(model.x,model.y))
+        for powerup in Fire:
+            model = Rect((0,0),(40,40))
+            model.center = powerup.center
+            window.blit(rate_i,(model.x,model.y))
+        for powerup in HealthBlock:
+            model = Rect((0,0),(40,40))
+            model.center = powerup.center
+            window.blit(hp_i,(model.x,model.y))
+        window.blit(flag_i,(board.goal.x, board.goal.y))
         player.x -= camera.x
         player.y -= camera.y
         camera.center = player.center
@@ -1106,13 +1151,13 @@ def game_loop():
 
 
     #Paint Text:
-        for row in board.rooms:#This loop paints all the room levels
+        """for row in board.rooms:#This loop paints all the room levels
             for room in row:
                 if room.checked:
                     text = body.render(str(room.level), 1, (10,10,10))
                     textpos = text.get_rect()
                     textpos.center = room.Floors[0].center
-                    window.blit(text,textpos)
+                    window.blit(text,textpos)"""
         text = subhead.render(str(board.level), 1, cement)
         textpos = text.get_rect()
         textpos.topright = camera.topright
