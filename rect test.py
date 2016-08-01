@@ -50,10 +50,11 @@ orange = (255,140,0)
 dark_orange = (139,69,0)
 white = (255,255,255)
 light_blue = (200,200,255)
-blood_red = (138,7,7)
+blood_red = (70,7,7)
 obsidian =  (6,6,6)
 gold = (205, 173, 0)
 light_yellow = (238, 238, 180)
+dark_red = (127,0,0)
 
 #For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 color = red
@@ -268,7 +269,7 @@ class Mob(Rect):
         not_player.append(self)
         Mobs.append(self)
         self.direction = [randint(1,4),0]
-        self.color = black
+        self.color = dark_red
         self.speed = default_speed * .5 * speed_scale
         self.health = 5
         self.flash = 0
@@ -410,7 +411,7 @@ class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
         super(EndGoal, self).__init__(*args,**kwargs)
         not_player.append(self)
-        self.color = red
+        self.color = white
 
     def remove(self):
         not_player.remove(self)
@@ -679,7 +680,7 @@ class Board(object):
                         S = True
                 #Theory: No room will be unaccessable with this code.
                 room_layout = (N,S,E,W)
-                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (139,58,58),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
+                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (60,60,60),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
 
             rooms.append(row)#not part of newconcept
             row = []#not part of newconcept
@@ -956,10 +957,10 @@ def game_loop():
                 ##### mob movement && damage###
         for mob in Mobs:
                 if(mob.flash != 0):
-                    mob.color = (70,70,70)
+                    mob.color = (128,40,40)
                     mob.flash -= 1
                 else:
-                    mob.color = black
+                    mob.color = dark_red
                 mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
