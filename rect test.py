@@ -280,7 +280,7 @@ class Mob(Rect):
         if mob_type == 1:
             self.color = dark_red
         if mob_type == 2:
-            self.color = light_green
+            self.color = light_yellow
         if mob_type == 3:
             self.color = purple
         
@@ -987,10 +987,10 @@ def game_loop():
                 ##### mob movement && damage && such###
         for mob in Mobs:
                 if(mob.flash != 0):
-                    mob.color = (128,40,40)
+                    mob.color = mob.color
                     mob.flash -= 1
                 else:
-                    mob.color = dark_red
+                    mob.color = mob.color
                 if mob.type == 1 or mob.type == 3:
                     mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
