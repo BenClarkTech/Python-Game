@@ -1145,39 +1145,39 @@ if __name__ == "__main__":
     menu_value = 0
     flag = True
     while flag:
-        c0 = cement
-        c1 = cement
-        if(menu_value == 0):
-            c0 = player_blue
+        play_color = cement
+        quit_color = cement
         if(menu_value == 1):
-            c1 = player_blue
+            play_color = player_blue
+        if(menu_value == 2):
+            quit_color = player_blue
         window.blit(title, (0,0))
-        text = subhead.render("Play Game", 1, c0)
-        textpos = text.get_rect()
-        textpos.center = camera.center
-        textpos.y += 20
-        window.blit(text,textpos)
-        text = subhead.render("Quit", 1, c1)
-        textpos = text.get_rect()
-        textpos.center = camera.center
-        textpos.y += 130
-        window.blit(text,textpos)
+        play_text = subhead.render("Play Game", 1, play_color)
+        play_rect = play_text.get_rect()
+        play_rect.center = camera.center
+        play_rect.y += 20
+        window.blit(play_text, play_rect)
+        quit_text = subhead.render("Quit", 1, quit_color)
+        quit_rect = quit_text.get_rect()
+        quit_rect.center = camera.center
+        quit_rect.y += 130
+        window.blit(quit_text,quit_rect)
         pygame.display.update()
         event = pygame.event.wait()
         if event.type == QUIT:
             terminate()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == K_w or event.key == K_UP:
-                if(menu_value > 0):
-                    menu_value -= 1
-            if event.key == K_s or event.key == K_DOWN:
-                if(menu_value < 1):
-                    menu_value += 1
-            if event.key == K_RETURN:
-                if(menu_value == 1):
-                    terminate()
-                if(menu_value == 0):
-                    flag = False
+        elif event.type == MOUSEMOTION:
+            if play_rect.collidepoint(event.pos):
+                menu_value = 1
+            elif quit_rect.collidepoint(event.pos):
+                menu_value = 2
+            else:
+                menu_value = 0
+        elif event.type == MOUSEBUTTONDOWN:
+            if play_rect.collidepoint(event.pos):
+                flag = False
+            elif quit_rect.collidepoint(event.pos):
+                terminate()
     while True:
         game_loop()
         text = header.render(" You have died!", 1, purple)
