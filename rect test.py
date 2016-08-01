@@ -577,7 +577,7 @@ class Room(object):
             self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.74),(self.w*.5,self.h*.05)))
 
     def GetBossCover(self):
-        covers = 4
+        covers = 5
         cover_model = randint(1,covers)
         cover_model = 2
         if cover_model == 0:
@@ -599,6 +599,12 @@ class Room(object):
         elif cover_model == 4: #CrossRoom
             self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
             self.Walls.append(Wall((self.x+self.w*.35,self.y + self.h*.49),(self.w*.3,self.h*.02)))
+        elif cover_model == 5: #bars and boxes
+            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
+            self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
+            self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
+            self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.74),(self.w*.5,self.h*.05)))
+
     
 
     def GetMobs(self):
