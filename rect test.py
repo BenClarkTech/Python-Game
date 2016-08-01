@@ -565,7 +565,7 @@ class Room(object):
             self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
-       elif cover_model == 4: # 4 bar room
+        elif cover_model == 4: # 4 bar room
             self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.35),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.15),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.65),(self.w*.7,self.h*.03)))
