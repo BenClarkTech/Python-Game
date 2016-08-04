@@ -5,81 +5,76 @@ import sys
 from pygame.locals import *
 from random import *
 
-"""
-One half-mob added to first level. Enjoy
-"""
-
 #Initialize pygame
 pygame.init()
 
 #Constant Definition:
     #Positions:
-xpos = 300#starting position if camera skewed
-ypos = 280
-px=xpos#archaic variables for revision
-py=ypos
-default_speed = 4
-default_hp = 3
-speed = default_speed
-default_bullet_speed = 15
-default_shot_delay = 40.0
-default_spread_angle = 0.1
-#mob_direction = [-1, 0]
-CLOCK = 60
-timer = 0
+X_POS = 300#starting position if camera skewed
+Y_POS = 280
+DEFAULT_SPEED = 4
+DEFAULT_HP = 3
+DEFAULT_BULLET_SPEED = 15
+DEFAULT_SHOT_DELAY = 40.0
+DEFAULT_SPREAD_ANGLE = 0.1
+FPS = 60
 spawn = (0,0)
 
-CameraX = 0#camera start
-CameraY = 0
-cX = CameraX#archaic variables for revision
-cY = CameraY
+#camera start
+CAMERA_X = 0
+CAMERA_Y = 0
 
-winX = 1200
-winY = 900
+WIN_X = 1200
+WIN_Y = 900
     #Colors:
-red = (230,50,50)
-purple = (128,0,128)
-black = (0,0,0)
-chocolate = (139,69,19)
-cement = (205,197,191)
-light_green = (113,198,113)
-blue = (92,172,239)
-dark_gray = (71,71,71)
-player_blue = (100,200,250)
-bg_gray = (19,19,19)
-orange = (255,140,0)
-dark_orange = (139,69,0)
-white = (255,255,255)
-light_blue = (200,200,255)
-blood_red = (70,7,7)
-obsidian =  (6,6,6)
-gold = (205, 173, 0)
-light_yellow = (238, 238, 180)
-dark_red = (127,0,0)
-mobBOSS_color = (130,10,10)
-mob1_color = (190,0,10)
-mob2_color = (130,0,30)
-mob3_color = (128,0,50)
-mob4_color = (127,0,70)
-mob5_color = (127,0,90)
-mob5_color = (127,0,110)
+RED = (230,50,50)
+PURPLE = (128,0,128)
+BLACK = (0,0,0)
+CHOCOLATE = (139,69,19)
+CEMENT = (205,197,191)
+LIGHT_GREEN = (113,198,113)
+BLUE = (92,172,239)
+DARK_GRAY = (71,71,71)
+PLAYER_BLUE = (100,200,250)
+BG_GRAY = (19,19,19)
+ORANGE = (255,140,0)
+DARK_ORANGE = (139,69,0)
+WHITE = (255,255,255)
+LIGHT_BLUE = (200,200,255)
+BLOOD_RED = (70,7,7)
+OBSIDIAN =  (6,6,6)
+GOLD = (205, 173, 0)
+LIGHT_YELLOW = (238, 238, 180)
+DARK_RED = (127,0,0)
+MOB_BOSS_COLOR = (130,10,10)
+MOB1_COLOR = (190,0,10)
+MOB2_COLOR = (130,0,30)
+MOB3_COLOR = (128,0,50)
+MOB4_COLOR = (127,0,70)
+MOB5_COLOR = (127,0,110)
+#For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
 
 #images:
-flag_i = pygame.image.load("Flag.png")
-small_i = pygame.image.load("SmallS.png")
-large_i = pygame.image.load("LargeS.png")
-buck_i = pygame.image.load("BuckShot.png")
-rate_i = pygame.image.load("FireRate.png")
-hp_i = pygame.image.load("HP.png")
-#For more colors see this resource: http://cloford.com/resources/colours/500col.htm or use paint
-color = red
+FLAG_I = pygame.image.load("Flag.png")
+SMALL_I = pygame.image.load("SmallS.png")
+LARGE_I = pygame.image.load("LargeS.png")
+BUCK_I = pygame.image.load("BuckShot.png")
+RATE_I = pygame.image.load("FireRate.png")
+HP_I = pygame.image.load("HP.png")
 
-#
+#font initialization:
+TITLE_FONT = pygame.font.Font(None, 288)
+SUBTITLE_FONT = pygame.font.Font(None, 220)
+HEADER_FONT = pygame.font.Font(None, 134)
+SUBHEAD_FONT = pygame.font.Font(None, 72)
+SUBHEAD2_FONT = pygame.font.Font(None, 58)
+BODY_FONT = pygame.font.Font(None, 36)
+
 #Array Initialization
 Mobs = []
 bullets = []
 walls = []
-not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
+not_player = []
 SmallSpeed = []
 BigSpeed = []
 mob_gate = []
@@ -88,26 +83,31 @@ HealthBlock = []
 Buck = []
 potential_end = []
 
+clock = pygame.time.Clock()
+
+window = pygame.display.set_mode([WIN_X,WIN_Y])
+camera = Rect((CAMERA_X,CAMERA_Y),(WIN_X,WIN_Y))
+
 #End Constand Definition
 #Begin Function Definition
 
 
 def fire_shot((x, y), (w, h), center_angle, speed, power, bounce, spread_count,
               spread_angle, owner, color=None):
-    """Create one or more bullets with the given properties. Use this
+    """Create one or more bullets with the given properties.  Use this
     instead of the Bullet constructor.
     """
-    # spread calculation expects that spread_count is at least 1
+    # Spread calculation expects that spread_count is at least 1.
     if spread_count < 1:
         spread_count = 1
 
-    # calculate the angles for all bullets in the spread
+    # Calculate the angles for all bullets in the spread.
     bullet_angles = [center_angle
                      - ((spread_count - 1) * spread_angle / 2.0)
                      + (spread_angle * bullet_number)
                      for bullet_number in range(spread_count)]
 
-    # create all bullets
+    # Create all bullets.
     for angle in bullet_angles:
         Bullet((x, y), (w, h),
                speed * math.cos(angle), speed * math.sin(angle),
@@ -122,20 +122,12 @@ def get_angle((origin_x, origin_y), (target_x, target_y)):
     angle = math.atan2(y_distance, x_distance)
     return angle
 
-def getBounds(rec):
-    """Takes in a rectangle and returns a list of the various bounds.
-    [0] is x left bound, [1] is x right bound, [2] is y top bound
-    [3] is y bottom bound. ***not sure if useful with moving cam."""
-    return {rec.x,rec.x+rec.width,rec.y,rec.y+rec.height}
-
 def moveRect(rec,dx,dy,*args):
     if dx != 0:
         ret = moveRect_single_axis(rec,dx,0,*args)
-        #print str(ret)+"({},{})".format(dx,dy)
         return ret
     if dy != 0:
         ret = moveRect_single_axis(rec,0,dy,*args)
-        #print str(ret)+"({},{})".format(dx,dy)
         return ret
 
 def moveRect_single_axis(rec,dx,dy,*args):
@@ -148,71 +140,29 @@ def moveRect_single_axis(rec,dx,dy,*args):
         rec.x += dx
         rec.y += dy
     for arg in args:
-        #print str(args[0])+str(rec) #object debugging
         if rec.colliderect(arg):
-            #print "Collision Detected"
+            # Collision detected
             if dx > 0:
+                # Left bump
                 rec.right = arg.left
                 if type(rec) is Bullet:
                     rec.realx = rec.x
-                #print "left bump"
             if dx < 0:
+                # Right bump
                 rec.left = arg.right
                 if type(rec) is Bullet:
                     rec.realx = rec.x
-                #print "right bump"
             if dy > 0:
+                # Top bump
                 rec.bottom = arg.top
                 if type(rec) is Bullet:
                     rec.realy = rec.y
-                #print "top bump"
             if dy < 0:
+                # Bottom bump
                 rec.top = arg.bottom
                 if type(rec) is Bullet:
                     rec.realy = rec.y
-                #print "bottom bump"
-            #print "Colliding"
-            #print "Transformed -> "+str(args[0])+str(rec) #object debugging
             return False
-    #print "not Colliding"
-    return True
-
-
-def moveTrueRect(rec,dx,dy,*args):
-    if dx != 0:
-        ret = moveTrueRect_single_axis(rec,dx,0,*args)
-        #print str(ret)+"({},{})".format(dx,dy)
-        return ret
-    if dy != 0:
-        ret = moveTrueRect_single_axis(rec,0,dy,*args)
-        #print str(ret)+"({},{})".format(dx,dy)
-        return ret
-
-def moveTrueRect_single_axis(rec,dx,dy,*args):
-    rec.realx += dx
-    rec.realy += dy
-    rec.x = int(round(rec.realx))
-    rec.y = int(round(rec.realy))
-    for arg in args:
-        #print str(args[0])+str(rec) #object debugging
-        if rec.colliderect(arg):
-            #print "Collision Detected"
-            if dx > 0:
-                rec.right = arg.left
-                #print "left bump"
-            if dx < 0:
-                rec.left = arg.right
-                #print "right bump"
-            if dy > 0:
-                rec.bottom = arg.top
-                #print "top bump"
-            if dy < 0:
-                rec.top = arg.bottom
-                #print "bottom bump"
-            #print "Colliding"
-            #print "Transformed -> "+str(args[0])+str(rec) #object debugging
-            return False
-    #print "not Colliding"
     return True
 
 def terminate():
@@ -228,14 +178,14 @@ class Wall(Rect):
             super(Wall, self).__init__((x,y),(w,h),*args, **kwargs)
             walls.append(self)
             not_player.append(self)
-            self.color = cement
+            self.color = CEMENT
         else:
             self.x = rec.x
             self.y = rec.y
             self.w = rec.w
             self.h = rec.h
             not_player.append(self)
-            self.color = cement
+            self.color = CEMENT
 
     def remove(self):
         not_player.remove(self)
@@ -246,14 +196,14 @@ class Env(Rect):
         if rec == None:
             super(Env, self).__init__((x,y),(w,h))
             not_player.append(self)
-            self.color = dark_gray
+            self.color = DARK_GRAY
         else:
             self.x = rec.x
             self.y = rec.y
             self.w = rec.w
             self.h = rec.h
             not_player.append(self)
-            self.color = dark_gray
+            self.color = DARK_GRAY
             
     def remove(self):
         not_player.remove(self)
@@ -263,7 +213,7 @@ class MobGate(Rect):
         super(MobGate,self).__init__(*args,**kwargs)
         not_player.append(self)
         mob_gate.append(self)
-        self.color = gold
+        self.color = GOLD
 
     def remove(self):
         not_player.remove(self)
@@ -272,13 +222,13 @@ class MobGate(Rect):
 class Player(Rect):
     def __init__(self, *args, **kwargs):
         super(Player, self).__init__(*args, **kwargs)
-        self.color = player_blue
-        self.health = default_hp
+        self.color = PLAYER_BLUE
+        self.health = DEFAULT_HP
         self.hpboost = 0
         self.damage_cd = 0
         self.shot_timer = 0
         self.shot_spread = 1
-        self.fire_rate = 1/default_shot_delay
+        self.fire_rate = 1/DEFAULT_SHOT_DELAY
 
 class Mob(Rect):
     def __init__(self, mob_type=1, (x, y) = (0,0), (w, h) = (0,0), speed_scale = 1,*args, **kwargs):
@@ -287,50 +237,46 @@ class Mob(Rect):
         Mobs.append(self)
         self.type = mob_type
         self.direction = [randint(1,4),0]
-        self.speed = default_speed * .5 * speed_scale
+        self.speed = DEFAULT_SPEED * .5 * speed_scale
         self.health = 5
         self.flash = 0
         self.shot_timer = randint(0, 15)
         self.shot_spread = 1
-        self.fire_rate = 1/default_shot_delay
+        self.fire_rate = 1/DEFAULT_SHOT_DELAY
         self.fire_angle = randint(0, 359)* 1.0
-        if mob_type == 0: #boss type
-            self.real_color = mobBOSS_color
+        if mob_type == 0: # Boss type
+            self.real_color = MOB_BOSS_COLOR
         if mob_type == 1:
-            self.real_color = mob1_color
+            self.real_color = MOB1_COLOR
         if mob_type == 2:
-            self.real_color = mob2_color
+            self.real_color = MOB2_COLOR
         if mob_type == 3:
-            self.real_color = mob3_color
+            self.real_color = MOB3_COLOR
         self.color = self.real_color
-        
-    #def __call__(self, *args, **kwargs):
-    #    return mob.__init__(self, *args, **kwargs)
 
     def remove(self):
         not_player.remove(self)
         Mobs.remove(self)
 
     def move(self):
-        ##### mob movement ###
         collideable = []
         for wall in walls:
             collideable.append(wall)
         for gate in mob_gate:
             collideable.append(gate)
-        if(self.direction[0] == 1 or self.direction[1] == 1): #moving up
+        if(self.direction[0] == 1 or self.direction[1] == 1): # Moving up
             if(not moveRect(self,0,-self.speed,*collideable)):
                 self.direction[0] = 2
                 self.direction[1] = choice([2, 3, 4])
-        if(self.direction[0] == 2 or self.direction[1] == 2): #moving down
+        if(self.direction[0] == 2 or self.direction[1] == 2): # Moving down
             if(not moveRect(self,0,self.speed,*collideable)):
                 self.direction[0] = 1
                 self.direction[1] = choice([1, 3, 4])
-        if(self.direction[0] == 3 or self.direction[1] == 3): #moving left
+        if(self.direction[0] == 3 or self.direction[1] == 3): # Moving left
             if(not moveRect(self,-self.speed,0,*collideable)):
                 self.direction[0] = 4
                 self.direction[1] = choice([1, 2, 4])
-        if(self.direction[0] == 4 or self.direction[1] == 4): #moving right
+        if(self.direction[0] == 4 or self.direction[1] == 4): # Moving right
             if(not moveRect(self,self.speed,0,*collideable)):
                 self.direction[0] = 3
                 self.direction[1] = choice([1, 2, 3])
@@ -351,7 +297,7 @@ class MobBoss(Mob):
         stage = level/5
         self.health = 100
         self.boss_timer = 0.0
-        self.speed = default_speed * .5
+        self.speed = DEFAULT_SPEED * .5
         self.at_half_health = False
         self.at_quarter_health = False
 
@@ -399,13 +345,13 @@ class Bullet(Rect):
             self.power = 1
         else:
             self.power = power
-        self.bounce = bounce # number of times bullet can bounce off walls
-        self.owner = owner # could be things like "player", "mob", "trap"
+        self.bounce = bounce # Number of times bullet can bounce off walls.
+        self.owner = owner # Could be things like "player", "mob", "trap".
         if color == None:
             if owner == "player":
-                self.color = blue
+                self.color = BLUE
             else:
-                self.color = orange
+                self.color = ORANGE
         else:
             self.color = color
 
@@ -421,7 +367,7 @@ class Bullet(Rect):
             collideable.append(wall)
         for gate in mob_gate:
             collideable.append(gate)
-        # horizontal movement
+        # Horizontal movement
         if self.x_speed != 0 and not moveRect(self, self.x_speed, 0, *collideable):
             if self.bounce == 0:
                 self.remove()
@@ -429,7 +375,7 @@ class Bullet(Rect):
                 self.x_speed *= -1
                 if self.bounce > 0:
                     self.bounce -= 1
-        # vertical movement
+        # Vertical movement
         if self.y_speed != 0 and not moveRect(self, 0, self.y_speed, *collideable):
             if self.bounce == 0:
                 self.remove()
@@ -442,24 +388,35 @@ class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
         super(EndGoal, self).__init__(*args,**kwargs)
         not_player.append(self)
-        self.color = white
+        self.color = WHITE
 
     def remove(self):
         not_player.remove(self)
 
 #Event Class Blocks
-"""
-To add an event there are 4 components. First you must make a new event array. Simple, just declare it in the array block.
-Second you must create a new event class. These are all pretty cookie cutter, just follow the models below and append to your appropriate array.
-Third you must create a new event in the generation block. This is creating the hitbox and aligning it to the room center. Follow the existing examples.
-Finally you must create the rule for those events. This is located in the main loop. Emplement by adding a for loop over your array to check collisions with Player.
-"""
+# To add an event there are 4 components.
+#
+# First you must make a new event array. Simple, just declare it in the
+# array block.
+#
+# Second you must create a new event class. These are all pretty cookie-
+# cutter, just follow the models below and append to your appropriate
+# array.
+#
+# Third you must create a new event in the generation block. This is
+# creating the hitbox and aligning it to the room center. Follow the
+# existing examples.
+#
+# Finally you must create the rule for those events. This is located in
+# the main loop. Emplement by adding a for loop over your array to check
+# collisions with Player.
+
 class SpeedS(Rect):
     def __init__(self, *args, **kwargs):
         super(SpeedS, self).__init__(*args,**kwargs)
         not_player.append(self)
         SmallSpeed.append(self)
-        self.color = light_green
+        self.color = LIGHT_GREEN
 
     def remove(self):
         not_player.remove(self)
@@ -470,7 +427,7 @@ class SpeedB(Rect):
         super(SpeedB, self).__init__(*args,**kwargs)
         not_player.append(self)
         BigSpeed.append(self)
-        self.color = purple
+        self.color = PURPLE
 
     def remove(self):
         not_player.remove(self)
@@ -494,7 +451,7 @@ class BuckShotUP(Rect):
         super(BuckShotUP,self).__init__(*args,**kwargs)
         not_player.append(self)
         Buck.append(self)
-        self.color = orange
+        self.color = ORANGE
 
     def remove(self):
         not_player.remove(self)
@@ -505,7 +462,7 @@ class FireRateUP(Rect):
         super(FireRateUP,self).__init__(*args,**kwargs)
         not_player.append(self)
         Fire.append(self)
-        self.color = light_yellow
+        self.color = LIGHT_YELLOW
 
     def remove(self):
         not_player.remove(self)
@@ -516,7 +473,7 @@ class Hp(Rect):
         super(Hp,self).__init__(*args,**kwargs)
         not_player.append(self)
         HealthBlock.append(self)
-        self.color = white
+        self.color = WHITE
 
     def remove(self):
         not_player.remove(self)
@@ -525,10 +482,13 @@ class Hp(Rect):
 #End Power Up Blocks
         
 class Room(object):
-    """Class Room is a Highly Customizable Template class which can create various types of rooms. gap represents a fraction of the wall that is the door. Door is always centered."""
-    def __init__(self, position=(0,0), size=(winX,winY),doors=(False,False,False,False),floor_color=dark_gray,wall_color=cement,wall_thickness = 20,gap = .32,level = 0):
-        chunk = (1-gap)/2 #size of a piece of the wall on a gap side
-        self.chunk = chunk #optimization: replace chunk w/ self.chunk
+    """Class Room is a Highly Customizable Template class which can
+    create various types of rooms. gap represents a fraction of the wall
+    that is the door. Door is always centered.
+    """
+    def __init__(self, position=(0,0), size=(WIN_X,WIN_Y),doors=(False,False,False,False),floor_color=DARK_GRAY,wall_color=CEMENT,wall_thickness = 20,gap = .32,level = 0):
+        chunk = (1-gap)/2 # Size of a piece of the wall on a gap side
+        self.chunk = chunk
         self.level = level
         if (randint(0,3) == 0):
             s = 0
@@ -539,7 +499,7 @@ class Room(object):
         (self.x,self.y) = position
         (self.w,self.h) = size
         (self.N,self.S,self.E,self.W) = doors
-        self.floor_color = (randint(0,255),randint(0,255),randint(0,255))#floor_color
+        self.floor_color = (randint(0,255),randint(0,255),randint(0,255))
         self.wall_color = wall_color
         self.Floors = []
         self.Floors.append(Env((self.x,self.y),(self.w,self.h)))
@@ -588,7 +548,6 @@ class Room(object):
             wall.color = color
 
     def remove(self):
-        #print "remove called."
         for floor in self.Floors:
             floor.remove()
         for wall in self.Walls:
@@ -599,15 +558,15 @@ class Room(object):
         cover_model = randint(0,covers)
         if cover_model == 0:
             return
-        elif cover_model == 1: #One Box Off-Center
+        elif cover_model == 1: # One box off-center
             randx = choice([.1, .6])
             randy = choice([.1, .6])
             self.Walls.append(Wall((self.x+self.w*randx,self.y+self.h*randy),(self.w*.3,self.h*.3)))
-        elif cover_model == 2: #Three Box Center
+        elif cover_model == 2: # Three box center
             self.Walls.append(Wall((self.x + .1 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
             self.Walls.append(Wall((self.x + .6 * self.w, self.y + .1 * self.h),(.3*self.w,.3*self.h)))
             self.Walls.append(Wall((self.x + .35 * self.w, self.y + .6 * self.h),(.3*self.w,.3*self.h)))
-        elif cover_model == 3: #Four corner boxes
+        elif cover_model == 3: # Four corner boxes
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls.append(Wall((self.x,self.y),(self.w*self.chunk*.5,self.h*self.chunk*.5)))
             self.Walls[len(self.Walls)-1].topright = self.Floors[0].topright
@@ -620,7 +579,7 @@ class Room(object):
             self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.15),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.0,self.y+self.h*.65),(self.w*.7,self.h*.03)))
             self.Walls.append(Wall((self.x+self.w*.3,self.y+self.h*.85),(self.w*.7,self.h*.03)))
-        elif cover_model == 5: #two bars, two side boxes
+        elif cover_model == 5: # Two bars, two side boxes
             self.Walls.append(Wall((self.x+self.w*.25,self.y+self.h*.24),(self.w*.5,self.h*.05)))
             self.Walls.append(Wall((self.x+self.w*.2,self.y+self.h*.45),(self.w*.1,self.h*.1)))
             self.Walls.append(Wall((self.x+self.w*.7,self.y+self.h*.45),(self.w*.1,self.h*.1)))
@@ -633,13 +592,13 @@ class Room(object):
         cover_model = 2
         if cover_model == 0:
             return
-        elif cover_model == 1: #One Box Center
+        elif cover_model == 1: # One box center
             self.Walls.append(Wall((self.x+self.w*.4,self.y+self.h*.4),(self.w*.2,self.h*.2)))
-        elif cover_model == 2: #HalfRoom
+        elif cover_model == 2: # Half room
             self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
             event = SpeedS((self.x+self.w/4-30,self.y+self.h/2-30),(60,60))
             event = SpeedB((self.x+3*self.w/4-50,self.y+self.h/2-50),(100,100))
-        elif cover_model == 3: #Four corner boxes
+        elif cover_model == 3: # Four corner boxes
             self.Walls.append(Wall((self.x,self.y),(100,100)))
             self.Walls.append(Wall((self.x,self.y),(100,100)))
             self.Walls[len(self.Walls)-1].topright = self.Floors[0].topright
@@ -647,14 +606,14 @@ class Room(object):
             self.Walls[len(self.Walls)-1].bottomright = self.Floors[0].bottomright
             self.Walls.append(Wall((self.x,self.y),(100,100)))
             self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
-        elif cover_model == 4: #CrossRoom
+        elif cover_model == 4: # Cross room
             self.Walls.append(Wall((self.x+self.w*.49,self.y + self.h*.35),(self.w*.02,self.h*.3)))
             self.Walls.append(Wall((self.x+self.w*.35,self.y + self.h*.49),(self.w*.3,self.h*.02)))
  
 
     
 
-    def GetMobs(self):
+    def get_mobs(self):
         num_mobs = 3
         if self.level <= 3:
             mob_type = (randint(0, self.level)+1)
@@ -682,7 +641,6 @@ class Board(object):
         self.goal = None
         self.level = 0
         self.rooms = []
-        #self.mobs = []
         self.generate()
         
     def generate(self):
@@ -701,7 +659,7 @@ class Board(object):
         print "Making rooms"
         for i in range(0,self.collumns):
             for j in range(0,self.rows):
-                #Randomization
+                # Randomization
                 seed = randint(0,2)
                 if seed == 0:
                     E = True
@@ -709,100 +667,106 @@ class Board(object):
                 elif seed == 1:
                     E = False
                     S = True
-                elif seed == 2: #anyway to make a W N room? <<<Interesting question
+                elif seed == 2:
                     E = True
                     S = False
-                #Hallway Anomaly
+                # Hallway anomaly
                 if self.collumns == 1:
                     N = True
                     S = True
                 if self.rows == 1:
                     E = True
                     W = True
-                #Sets the mandatory border walls
+                # Sets the mandatory border walls
                 if(i == 0):
                     W = False
                 if(j == 0):
                     N = False
                 if(i == self.collumns - 1):
                     E = False
-                    #if(j != self.rows - 1): #These caveats are optional.
-                     #   S = True
+                    # The following commented-out caveats are optional.
+                    # They basically create an alley around the
+                    # bottom-right to navigate around.
+
+                    # if(j != self.rows - 1): 
+                    #     S = True
                 if(j == self.rows - 1):
                     S = False
-                    #if(i != self.rows - 1): #(cont) They basically create an alley around the bottom right to navigate around.
-                     #   E = True
-                #Ends mandatory border walls
-                #Sets the Dependent Walls
+                    # if(i != self.rows - 1):
+                    #     E = True
+
+                # Sets the dependent walls
                 if(i - 1 >= 0):
                     W = rooms[i-1][j].E
                 if(j - 1 >= 0):
                     N = row[j-1].S
-                #Ends the Dependent Walls
-                #Ensures every room has an entrance
+
+                # Ensures every room has an entrance
                 if j != 0:
                     if (N == False and S == False and E == False and W == False):
                         E = True
                 if i != self.collumns - 1:
                     if (N == False and S == False and E == False and W == False):
                         S = True
-                #Theory: No room will be unaccessable with this code.
+                # Theory: No room will be unaccessable with this code.
                 room_layout = (N,S,E,W)
-                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (60,60,60),wall_thickness = self.thick,level = self.level)) #Because, why not random colors?
+                row.append(Room(((self.startX+(self.thick+self.roomW)*i),(self.startY+(self.thick+self.roomH)*j)),(self.roomW,self.roomH),room_layout,floor_color = (60,60,60),wall_thickness = self.thick,level = self.level))
 
-            rooms.append(row)#not part of newconcept
-            row = []#not part of newconcept
+            rooms.append(row)
+            row = []
         print "Checking rooms"
-        #checker to get all passable terrain
+        # Checker to get all passable terrain
         self.rooms = rooms
         potential_end = []
         if self.checker(0,0) != 0:
             return
-        #Would be nice to implement a gating mechanism which opens if the room is completed.
-        #pick a room to set the endpoint in
-        end_point = choice(potential_end) #Endpoint is some random room on the board.
-        #creates the end point
+        # Pick a room to set the endpoint in
+        end_point = choice(potential_end)
+        # Creates the end point
         self.goal = EndGoal((0,0),(40,40))
-        print end_point #debugging location of endpoint
-        #aligns end point to middle of room
+        print end_point # Debugging location of endpoint
+        # Aligns end point to middle of room
         self.goal.center = rooms[end_point[0]][end_point[1]].Floors[0].center
-        #Sets levels to prevent unkindly spawns of cover
+        # Sets levels to prevent unkindly spawns of cover
         rooms[end_point[0]][end_point[1]].level = 0
         rooms[0][0].level = 0
-        #CoverGeneration is here
+        # Cover generation is here
         for row in rooms:
             for room in row:
                 if room.level > 0 and room.checked == True:
                     room.GetCover()
                     print "Mob got."
-                    room.GetMobs()
+                    room.get_mobs()
                     
         print "Generating Events."
-        #EventGeneration goes here !!!Read instructions before adding event located near the event class block!!!
+        # Event generation goes here ***Read instructions before adding
+        # an event located near the event class block***
         for row in rooms:
             for room in row:
                 if room.level == 0 and room.checked == True and room != rooms[end_point[0]][end_point[1]]:
                     if randint(0,9) == 9:
-                        number_big = 1 #if you add a new big event increment this
+                        # If you add a new big event, increment number_big
+                        number_big = 1 
                         x = randint(1,number_big)
                         if x == 1:
                             events.append(SpeedB((0,0),(100,100)))
                             events[len(events)-1].center = room.center
-                        #addnew big events here as an elif
+                        # Add new big events here as elif blocks
                     elif randint(4,4) == 4:
-                        number_small = 1 #if you add a new small event increment this
+                        # If you add a new small event, increment number_small
+                        number_small = 1 
                         x = randint(1,number_small)
                         if x == 1:
                             events.append(SpeedS((0,0),(50,50)))
                             events[len(events)-1].center = room.center
-                        #addnew small events here as an elif
+                        # Add new small events here as elif blocks
         print "Removing rooms"
-        #Unaccessable room removal:
+        # Unaccessable room removal:
         for row in rooms:
             for room in row:
                 if room.checked == False:
                     room.remove()
-        self.rooms = rooms #saves rooms for later use - should make all rooms self.rooms for efficiency
+        self.rooms = rooms
         print "Generation complete"
 
     def wash_board(self):
@@ -832,8 +796,6 @@ class Board(object):
     def checker(self,x,y,flag = False):
         self.rooms[x][y].checked = True
         flag2 = True
-        #self.rooms[x][y].SetFloor(chocolate)
-        #print str(x)+" "+str(y)
         if self.rooms[x][y].N:
             flag = True
             print "N" + str(x) + str(y)
@@ -871,66 +833,44 @@ class Board(object):
     def generateBoss(self):
         self.rooms = []
         row = []
-        row.append(Room((self.startX,self.startY),(self.roomW*1.5,self.roomH*1),(False,False,False,False),floor_color = blood_red, wall_color = obsidian, wall_thickness = self.thick*3, level = 0))
+        row.append(Room((self.startX,self.startY),(self.roomW*1.5,self.roomH*1),(False,False,False,False),floor_color = BLOOD_RED, wall_color = OBSIDIAN, wall_thickness = self.thick*3, level = 0))
         self.rooms.append(row)
         self.rooms[0][0].GetBossCover()
         self.rooms[0][0].GetBoss(self.level)
 #End Class Definition
 
-
-clock = pygame.time.Clock()
-
-window = pygame.display.set_mode([winX,winY])
-camera = Rect((CameraX,CameraY),(winX,winY)) #Note!!! Currently camera doesn't effect anythind
-
-#text initialization:
-body = pygame.font.Font(None, 36)
-subhead2 = pygame.font.Font(None, 58)
-subhead = pygame.font.Font(None, 72)
-header = pygame.font.Font(None, 134)
-subtitle = pygame.font.Font(None, 220)
-title = pygame.font.Font(None, 288)
-
-
 def game_loop():                                          
-    #Array Initialization
-    speed = default_speed
-    """Mobs = []
-    walls = []
-    not_player = [] #because of how movement works we could actually include player, however it provides more clarity as to our method if we seperate them
-    SmallSpeed = []
-    BigSpeed = []"""
+    # Array initialization
+    speed = DEFAULT_SPEED
     timer = 0
-    #rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they are drawn in order declared.
-    player = Player((xpos,ypos), (40,40))
-    #room generation:
+    # Rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they
+    # are drawn in order declared.
+    player = Player((X_POS,Y_POS), (40,40))
+    # Room generation:
     rows = randint(1,4)
     collumns = randint(1,4)
     board = Board(rows, collumns)
-    #mobs:
-    #mob = mob((300,11), (40,40))
-    #centers camera at start
-    camera.center = player.center#comment out to allow skewed camera
+    # Centers camera at start
+    camera.center = player.center # Comment out to allow skewed camera
     count = 0
 
 
     while True:
-        clock.tick(CLOCK)
-        #print speed
+        clock.tick(FPS)
         if player.damage_cd != 0:
             count += 1
             player.damage_cd -= 1
             if count % 10 == 0:
-                if player.color == player_blue:
-                    player.color = light_blue
+                if player.color == PLAYER_BLUE:
+                    player.color = LIGHT_BLUE
                 else:
-                    player.color = player_blue
+                    player.color = PLAYER_BLUE
         else:
-            player.color = player_blue
+            player.color = PLAYER_BLUE
         if timer != 0:
             timer -= 1
         else:
-            speed = default_speed
+            speed = DEFAULT_SPEED
         if player.shot_timer > 0:
             player.shot_timer -= 1
 
@@ -943,12 +883,12 @@ def game_loop():
                             mob.takeDmg(1)
                 if event.key == K_p:
                     while(True):
-                        text = subhead.render("Game Paused (p)", 1, (255,140,0))
+                        text = SUBHEAD_FONT.render("Game Paused (p)", 1, (255,140,0))
                         textpos = text.get_rect()
                         textpos.center = camera.center
                         textpos.y -= 40
                         window.blit(text,textpos)
-                        text = subhead2.render("Press Q to quit", 1, (255,140,0))
+                        text = SUBHEAD2_FONT.render("Press Q to quit", 1, (255,140,0))
                         textpos = text.get_rect()
                         textpos.center = camera.center
                         textpos.y += 40
@@ -963,64 +903,42 @@ def game_loop():
                             if event.key == K_q:
                                 terminate()
 
-        ### player movement ###
+        # Player movement
         if(pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]):
             if(moveRect(player,0,-speed,*walls)):
-                #print "Not Colliding!"
-                #moveRect(player,0,+speed)
                 camera.center = player.center
-                """for obj in not_player:
-                    moveRect(obj,0,speed)"""
         if(pygame.key.get_pressed()[K_DOWN] or pygame.key.get_pressed()[K_s]):
             if(moveRect(player,0,speed,*walls)):
-                #print "Not Colliding!"
-                #moveRect(player,0,-speed)
                 camera.center = player.center
-                """for obj in not_player:
-                    moveRect(obj,0,-speed)"""
         if(pygame.key.get_pressed()[K_LEFT] or pygame.key.get_pressed()[K_a]):
             if(moveRect(player,-speed,0,*walls)):
-                #print "Not Colliding!"
-                #moveRect(player,speed,0)
                 camera.center = player.center
-                """for obj in not_player:
-                    moveRect(obj,speed,0)"""
         if(pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]):
             if(moveRect(player,speed,0,*walls)):
-                #print "Not Colliding!"
-                #moveRect(player,-speed,0)
                 camera.center = player.center
-                """for obj in not_player:
-                    moveRect(obj,-speed,0)"""
 
-        ### player aiming and firing ###
+        # Player aiming and firing
         if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
             player.shot_timer = 1/player.fire_rate
             mouse_angle = get_angle(player.center, pygame.mouse.get_pos())
             fire_shot((player.centerx - 5, player.centery - 5), (10, 10),
-                      mouse_angle, default_bullet_speed, 1, 0, player.shot_spread,
-                      default_spread_angle, "player")
+                      mouse_angle, DEFAULT_BULLET_SPEED, 1, 0,
+                      player.shot_spread, DEFAULT_SPREAD_ANGLE, "player")
 
-        ### goal generation ###
+        # Goal generation
         if board.goal == None:
             if len(Mobs) == 0:
                 board.goal = EndGoal(spawn,(40,40))
         if board.goal != None:
             if player.colliderect(board.goal):
-                #print "next board"
+                # Create next board
                 board.wash_board()
-                #print walls
                 rows = randint(1,3)
                 collumns = randint(1,3)
                 board.remake(rows,collumns,level_up = 1)
-                player.x = xpos
-                player.y = ypos
+                player.x = X_POS
+                player.y = Y_POS
                 camera.center = player.center
-                #Show levelup screen possibly with something like [space] to continue
-                #clear board
-                #increment level counter
-                #move player to start position
-                #regenerate a board
 
                 ##### mob movement && damage && such###
         for mob in Mobs:
@@ -1034,15 +952,15 @@ def game_loop():
                     mob.move()
                 if player.colliderect(mob) and player.damage_cd == 0:
                     player.health -= 1
-                    player.color = light_blue
+                    player.color = LIGHT_BLUE
                     player.damage_cd = 1 * 60
                 if mob.type == 2:
                     mob.fire_angle += .05;
                     if mob.fire_angle >= 360:
                         mob.fire_angle = 0
                     fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
-                          mob.fire_angle, default_bullet_speed, 1, 0, mob.shot_spread,
-                          default_spread_angle, "mob")
+                          mob.fire_angle, DEFAULT_BULLET_SPEED, 1, 0, mob.shot_spread,
+                          DEFAULT_SPREAD_ANGLE, "mob")
                 if mob.type == 3:
                     if mob.shot_timer > 0:
                         mob.shot_timer -= .1
@@ -1050,44 +968,44 @@ def game_loop():
                     if mob.shot_timer <= 0:
                         mob.shot_timer = 10
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
-                              mob.fire_angle, default_bullet_speed-6, 1, 2, mob.shot_spread,
-                              default_spread_angle, "mob")
+                              mob.fire_angle, DEFAULT_BULLET_SPEED-6, 1, 2, mob.shot_spread,
+                              DEFAULT_SPREAD_ANGLE, "mob")
 
-                if mob.type == 0: #boss type
+                if mob.type == 0: # Boss type
                     mob.color = mob.real_color
                     mob.move()
                     mob.boss_timer += .5
                     if mob.boss_timer >= 10000000:
                         mob.boss_timer = 0
 
-                    if mob.boss_timer %300 == 0: #ring of death
+                    if mob.boss_timer %300 == 0: # Ring of death
                         mob.color = (50,90,30)
                         for i in range (0, 360, 20):
                             fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
-                              i, default_bullet_speed-12, 1, 0, mob.shot_spread,
-                              default_spread_angle, "mob")
+                              i, DEFAULT_BULLET_SPEED-12, 1, 0, mob.shot_spread,
+                              DEFAULT_SPREAD_ANGLE, "mob")
 
-                    if mob.boss_timer %100 == 0: #bouncing shot
+                    if mob.boss_timer %100 == 0: # Bouncing shot
                         mob.color = (80,00,90)
                         mob.fire_angle = get_angle((mob.centerx, mob.centery), (player.centerx, player.centery))
                         fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
-                              mob.fire_angle, default_bullet_speed-10, 1, 5, mob.shot_spread,
-                              default_spread_angle, "mob")
+                              mob.fire_angle, DEFAULT_BULLET_SPEED-10, 1, 5, mob.shot_spread,
+                              DEFAULT_SPREAD_ANGLE, "mob")
                     
                     
                     
                                     
-        # bullet movement and damage (currently only checks for "player" owner)
+        # Bullet movement and damage
         for bullet in bullets:
             bullet.move()
-            # damage for bullets not owned by the player
+            # Damage for bullets not owned by the player
             if bullet.owner != "player":
                 if player.colliderect(bullet) and player.damage_cd == 0:
                     player.health -= 1
-                    player.color = light_blue
+                    player.color = LIGHT_BLUE
                     player.damage_cd = 1 * 60
                     bullet.remove()
-            # damage for bullets owned by the player
+            # Damage for bullets owned by the player
             else:
                 for mob in Mobs:
                     if mob.colliderect(bullet):
@@ -1095,33 +1013,34 @@ def game_loop():
                         bullet.remove()
                         break
 
-        for event in BigSpeed: #Event Executions go here !!!Read instructions before adding event located near the event class block!!!
+        # Event executions go here ***Read instructions before adding
+        # an event located near the event class block***
+        for event in BigSpeed:
             if player.colliderect(event):
-                    #print "You should get BIGSPEED"
-                    speed = default_speed+2
-                    timer = 2 * CLOCK
+                    speed = DEFAULT_SPEED+2
+                    timer = 2 * FPS
         for event in SmallSpeed:
             if player.colliderect(event):
-                    #print "You should get tinehsped"
-                    speed = default_speed+1
-                    timer = 1 * CLOCK
-                    
-        for powerup in Buck: #PowerUp Executions go here
+                    speed = DEFAULT_SPEED+1
+                    timer = 1 * FPS
+
+        # PowerUp executions go here
+        for powerup in Buck:
             if player.colliderect(powerup):
                 player.shot_spread += 1
                 powerup.remove()
         for powerup in Fire:
             if player.colliderect(powerup):
-                player.fire_rate += .25/default_shot_delay
+                player.fire_rate += .25/DEFAULT_SHOT_DELAY
                 powerup.remove()
         for powerup in HealthBlock:
             if player.colliderect(powerup):
                 player.hpboost += 1
-                player.health = player.hpboost + default_hp
+                player.health = player.hpboost + DEFAULT_HP
                 powerup.remove()
                 
-    #Painting of scene:
-        window.fill(bg_gray)
+        # Painting of scene:
+        window.fill(BG_GRAY)
         for obj in not_player:
             obj.x -= camera.x
             obj.y -= camera.y
@@ -1133,49 +1052,42 @@ def game_loop():
         for event in BigSpeed: 
             model = Rect((0,0),(40,40))
             model.center = event.center
-            window.blit(large_i,(model.x,model.y))
+            window.blit(LARGE_I,(model.x,model.y))
         for event in SmallSpeed:
             model = Rect((0,0),(40,40))
             model.center = event.center
-            window.blit(small_i,(model.x,model.y))
+            window.blit(SMALL_I,(model.x,model.y))
         for powerup in Buck: 
             model = Rect((0,0),(40,40))
             model.center = powerup.center
-            window.blit(buck_i,(model.x,model.y))
+            window.blit(BUCK_I,(model.x,model.y))
         for powerup in Fire:
             model = Rect((0,0),(40,40))
             model.center = powerup.center
-            window.blit(rate_i,(model.x,model.y))
+            window.blit(RATE_I,(model.x,model.y))
         for powerup in HealthBlock:
             model = Rect((0,0),(40,40))
             model.center = powerup.center
-            window.blit(hp_i,(model.x,model.y))
+            window.blit(HP_I,(model.x,model.y))
         if board.goal != None:
-            window.blit(flag_i,(board.goal.x, board.goal.y))
+            window.blit(FLAG_I,(board.goal.x, board.goal.y))
         player.x -= camera.x
         player.y -= camera.y
         camera.center = player.center
         pygame.draw.rect(window, player.color, player)
 
 
-    #Paint Text:
-        """for row in board.rooms:#This loop paints all the room levels
-            for room in row:
-                if room.checked:
-                    text = body.render(str(room.level), 1, (10,10,10))
-                    textpos = text.get_rect()
-                    textpos.center = room.Floors[0].center
-                    window.blit(text,textpos)"""
-        text = subhead.render(str(board.level), 1, cement)
+        # Paint text:
+        text = SUBHEAD_FONT.render(str(board.level), 1, CEMENT)
         textpos = text.get_rect()
         textpos.topright = camera.topright
         window.blit(text,textpos)
-        text = subhead.render(str(player.health), 1, red)
+        text = SUBHEAD_FONT.render(str(player.health), 1, RED)
         textpos = text.get_rect()
         textpos.topleft = camera.topleft
         window.blit(text,textpos)
 
-        #scene reversion
+        # Scene reversion
         for obj in not_player:
             obj.x += camera.x
             obj.y += camera.y
@@ -1184,7 +1096,6 @@ def game_loop():
                 obj.realy += camera.y
         player.x += camera.x
         player.y += camera.y
-        #What's better, .update() or .flip()?
         pygame.display.flip()
 
         if player.health == 0:
@@ -1197,19 +1108,19 @@ if __name__ == "__main__":
     menu_value = 0
     flag = True
     while flag:
-        play_color = cement
-        quit_color = cement
+        play_color = CEMENT
+        quit_color = CEMENT
         if(menu_value == 1):
-            play_color = player_blue
+            play_color = PLAYER_BLUE
         if(menu_value == 2):
-            quit_color = player_blue
+            quit_color = PLAYER_BLUE
         window.blit(title, (0,0))
-        play_text = subhead.render("Play Game", 1, play_color)
+        play_text = SUBHEAD_FONT.render("Play Game", 1, play_color)
         play_rect = play_text.get_rect()
         play_rect.center = camera.center
         play_rect.y += 20
         window.blit(play_text, play_rect)
-        quit_text = subhead.render("Quit", 1, quit_color)
+        quit_text = SUBHEAD_FONT.render("Quit", 1, quit_color)
         quit_rect = quit_text.get_rect()
         quit_rect.center = camera.center
         quit_rect.y += 130
@@ -1232,12 +1143,12 @@ if __name__ == "__main__":
                 terminate()
     while True:
         game_loop()
-        text = header.render(" You have died!", 1, purple)
+        text = HEADER_FONT.render(" You have died!", 1, PURPLE)
         textpos = text.get_rect()
         textpos.center = camera.center
         textpos.y = textpos.y - 100
         window.blit(text,textpos)
-        text = subhead.render("Press R to try again.", 1, (255,140,0))
+        text = SUBHEAD_FONT.render("Press R to try again.", 1, (255,140,0))
         textpos = text.get_rect()
         textpos.center = camera.center
         textpos.y = textpos.y + 50
@@ -1252,9 +1163,3 @@ if __name__ == "__main__":
             elif event.type == KEYDOWN and event.key == K_r:
                 break
 
-
-#If the player is colliding with a zone, outlined by rectangles
-#Then the player should be effected by the bounds set by the particular rectangle
-    #What if there is an "active room" concept, you pass the active room in as arguments for movement walls
-#You should have open and closed boundaries. An array of 4 bools representing cardinal directions
-#How would you open up zones to pass through? 
