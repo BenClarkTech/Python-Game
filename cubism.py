@@ -615,7 +615,7 @@ class Room(object):
 
     def get_mobs(self):
         num_mobs = 3
-        if self.level <= 3:
+        if self.level < 3:
             mob_type = (randint(0, self.level)+1)
         else:
             mob_type = randint(1, num_mobs)
