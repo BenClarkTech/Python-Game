@@ -966,9 +966,6 @@ def game_loop():
             if event.type == QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN:
-                if event.key == K_j:
-                    for mob in mobs:
-                        mob.take_damage(1)
                 if event.key == K_p:
                     while True:
                         text = SUBHEAD_FONT.render("Game Paused (p)", 1,
