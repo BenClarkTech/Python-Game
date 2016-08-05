@@ -1047,7 +1047,7 @@ def game_loop():
                 player.damage_cd = 1 * 60
             if mob.type == 2:
                 mob.fire_angle += .05
-                if mob.fire_angle >= 360:
+                if mob.fire_angle >= 2 * math.pi:
                     mob.fire_angle = 0
                 fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
                           mob.fire_angle, DEFAULT_BULLET_SPEED, 1, 0,
