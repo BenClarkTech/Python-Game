@@ -10,8 +10,8 @@ pygame.init()
 
 #Constant Definition:
     #Positions:
-X_POS = 300#starting position if camera skewed
-Y_POS = 280
+START_X = 300#starting position if camera skewed
+START_Y = 280
 DEFAULT_SPEED = 4
 DEFAULT_HP = 3
 DEFAULT_BULLET_SPEED = 15
@@ -72,16 +72,16 @@ SUBHEAD2_FONT = pygame.font.Font(None, 58)
 BODY_FONT = pygame.font.Font(None, 36)
 
 #Array Initialization
-Mobs = []
+mobs = []
 bullets = []
 walls = []
 not_player = []
-SmallSpeed = []
-BigSpeed = []
+small_speed = []
+big_speed = []
 mob_gate = []
-Fire = []
-HealthBlock = []
-Buck = []
+fire = []
+health_block = []
+buck = []
 potential_end = []
 
 clock = pygame.time.Clock()
@@ -93,8 +93,8 @@ camera = Rect((CAMERA_X, CAMERA_Y), (WIN_X, WIN_Y))
 #Begin Function Definition
 
 
-def fire_shot((x, y), (w, h), center_angle, speed, power, bounce, spread_count,
-              spread_angle, owner, color=None):
+def fire_shot((x, y), (w, h), center_angle, speed, power, bounce,
+              spread_count, spread_angle, owner, color_=None):
     """Create one or more bullets with the given properties.  Use this
     instead of the Bullet constructor.
     """
@@ -112,7 +112,7 @@ def fire_shot((x, y), (w, h), center_angle, speed, power, bounce, spread_count,
     for angle in bullet_angles:
         Bullet((x, y), (w, h),
                speed * math.cos(angle), speed * math.sin(angle),
-               power, bounce, owner, color)
+               power, bounce, owner, color_)
 
 def get_angle((origin_x, origin_y), (target_x, target_y)):
     """Return the angle of the vector from an origin position to a
@@ -123,46 +123,46 @@ def get_angle((origin_x, origin_y), (target_x, target_y)):
     angle = math.atan2(y_distance, x_distance)
     return angle
 
-def moveRect(rec, dx, dy, *args):
-    if dx != 0:
-        ret = moveRect_single_axis(rec, dx, 0, *args)
+def move_rect(rec, x_distance, y_distance, *args):
+    if x_distance != 0:
+        ret = move_rect_single_axis(rec, x_distance, 0, *args)
         return ret
-    if dy != 0:
-        ret = moveRect_single_axis(rec, 0, dy, *args)
+    if y_distance != 0:
+        ret = move_rect_single_axis(rec, 0, y_distance, *args)
         return ret
 
-def moveRect_single_axis(rec, dx, dy, *args):
+def move_rect_single_axis(rec, x_distance, y_distance, *args):
     if type(rec) is Bullet:
-        rec.realx += dx
-        rec.realy += dy
-        rec.x = int(round(rec.realx))
-        rec.y = int(round(rec.realy))
+        rec.real_x += x_distance
+        rec.real_y += y_distance
+        rec.x = int(round(rec.real_x))
+        rec.y = int(round(rec.real_y))
     else:
-        rec.x += dx
-        rec.y += dy
+        rec.x += x_distance
+        rec.y += y_distance
     for arg in args:
         if rec.colliderect(arg):
             # Collision detected
-            if dx > 0:
+            if x_distance > 0:
                 # Left bump
                 rec.right = arg.left
                 if type(rec) is Bullet:
-                    rec.realx = rec.x
-            if dx < 0:
+                    rec.real_x = rec.x
+            if x_distance < 0:
                 # Right bump
                 rec.left = arg.right
                 if type(rec) is Bullet:
-                    rec.realx = rec.x
-            if dy > 0:
+                    rec.real_x = rec.x
+            if y_distance > 0:
                 # Top bump
                 rec.bottom = arg.top
                 if type(rec) is Bullet:
-                    rec.realy = rec.y
-            if dy < 0:
+                    rec.real_y = rec.y
+            if y_distance < 0:
                 # Bottom bump
                 rec.top = arg.bottom
                 if type(rec) is Bullet:
-                    rec.realy = rec.y
+                    rec.real_y = rec.y
             return False
     return True
 
@@ -176,7 +176,7 @@ def terminate():
 class Wall(Rect):
     def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), rec=None, *args, **kwargs):
         if rec == None:
-            super(Wall, self).__init__((x, y), (w, h), *args, **kwargs)
+            Rect.__init__(self, (x, y), (w, h), *args, **kwargs)
             walls.append(self)
             not_player.append(self)
             self.color = CEMENT
@@ -195,7 +195,7 @@ class Wall(Rect):
 class Env(Rect):
     def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), rec=None, *args, **kwargs):
         if rec == None:
-            super(Env, self).__init__((x, y), (w, h))
+            Rect.__init__(self, (x, y), (w, h), *args, **kwargs)
             not_player.append(self)
             self.color = DARK_GRAY
         else:
@@ -211,7 +211,7 @@ class Env(Rect):
 
 class MobGate(Rect):
     def __init__(self, *args, **kwargs):
-        super(MobGate, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
         mob_gate.append(self)
         self.color = GOLD
@@ -222,7 +222,7 @@ class MobGate(Rect):
 
 class Player(Rect):
     def __init__(self, *args, **kwargs):
-        super(Player, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         self.color = PLAYER_BLUE
         self.health = DEFAULT_HP
         self.hpboost = 0
@@ -234,9 +234,9 @@ class Player(Rect):
 class Mob(Rect):
     def __init__(self, mob_type=1, (x, y)=(0, 0), (w, h)=(0, 0), speed_scale=1,
                  *args, **kwargs):
-        super(Mob, self).__init__((x, y), (w, h), *args, **kwargs)
+        Rect.__init__(self, (x, y), (w, h), *args, **kwargs)
         not_player.append(self)
-        Mobs.append(self)
+        mobs.append(self)
         self.type = mob_type
         self.direction = [randint(1, 4), 0]
         self.speed = DEFAULT_SPEED * .5 * speed_scale
@@ -258,7 +258,7 @@ class Mob(Rect):
 
     def remove(self):
         not_player.remove(self)
-        Mobs.remove(self)
+        mobs.remove(self)
 
     def move(self):
         collideable = []
@@ -267,45 +267,43 @@ class Mob(Rect):
         for gate in mob_gate:
             collideable.append(gate)
         if self.direction[0] == 1 or self.direction[1] == 1: # Moving up
-            if not moveRect(self, 0, -self.speed, *collideable):
+            if not move_rect(self, 0, -self.speed, *collideable):
                 self.direction[0] = 2
                 self.direction[1] = choice([2, 3, 4])
         if self.direction[0] == 2 or self.direction[1] == 2: # Moving down
-            if not moveRect(self, 0, self.speed, *collideable):
+            if not move_rect(self, 0, self.speed, *collideable):
                 self.direction[0] = 1
                 self.direction[1] = choice([1, 3, 4])
         if self.direction[0] == 3 or self.direction[1] == 3: # Moving left
-            if not moveRect(self, -self.speed, 0, *collideable):
+            if not move_rect(self, -self.speed, 0, *collideable):
                 self.direction[0] = 4
                 self.direction[1] = choice([1, 2, 4])
         if self.direction[0] == 4 or self.direction[1] == 4: # Moving right
-            if not moveRect(self, self.speed, 0, *collideable):
+            if not move_rect(self, self.speed, 0, *collideable):
                 self.direction[0] = 3
                 self.direction[1] = choice([1, 2, 3])
 
-    def takeDmg(self, dmg=1):
+    def take_damage(self, dmg=1):
         print self.health
         self.health -= dmg
         print self.health
         self.flash = 5
         if self.health <= 0:
-            GetPowerup(self.x, self.y)
+            get_powerup(self.x, self.y)
             self.remove()
             print "killed."
 
 class MobBoss(Mob):
-    def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), speed_scale=1, level=0,
+    def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), speed_scale=1,
                  *args, **kwargs):
-        super(MobBoss, self).__init__(0, (x, y), (w, h), speed_scale, *args,
-                                      **kwargs)
-        stage = level/5
+        Mob.__init__(self, 0, (x, y), (w, h), speed_scale, *args, **kwargs)
         self.health = 100
         self.boss_timer = 0.0
         self.speed = DEFAULT_SPEED * .5
         self.at_half_health = False
         self.at_quarter_health = False
 
-    def takeDmg(self, dmg=1):
+    def take_damage(self, dmg=1):
         global spawn
         self.health -= dmg
         self.flash = 5
@@ -334,15 +332,15 @@ class MobBoss(Mob):
 
 class Bullet(Rect):
     def __init__(self, (x, y)=(0, 0), (w, h)=(0, 0), x_speed=0, y_speed=15,
-                 power=1, bounce=0, owner="player", color=None,
+                 power=1, bounce=0, owner="player", color_=None,
                  *args, **kwargs):
-        super(Bullet, self).__init__((x, y), (w, h), *args, **kwargs)
+        Rect.__init__(self, (x, y), (w, h), *args, **kwargs)
 
         not_player.append(self)
         bullets.append(self)
 
-        self.realx = self.x
-        self.realy = self.y
+        self.real_x = self.x
+        self.real_y = self.y
         self.x_speed = x_speed
         self.y_speed = y_speed
         if power < 1:
@@ -351,13 +349,13 @@ class Bullet(Rect):
             self.power = power
         self.bounce = bounce # Number of times bullet can bounce off walls.
         self.owner = owner # Could be things like "player", "mob", "trap".
-        if color == None:
+        if color_ == None:
             if owner == "player":
                 self.color = BLUE
             else:
                 self.color = ORANGE
         else:
-            self.color = color
+            self.color = color_
 
     def remove(self):
         if self in not_player:
@@ -372,8 +370,8 @@ class Bullet(Rect):
         for gate in mob_gate:
             collideable.append(gate)
         # Horizontal movement
-        if self.x_speed != 0 and not moveRect(self, self.x_speed, 0,
-                                              *collideable):
+        if self.x_speed != 0 and not move_rect(self, self.x_speed, 0,
+                                               *collideable):
             if self.bounce == 0:
                 self.remove()
             else:
@@ -381,8 +379,8 @@ class Bullet(Rect):
                 if self.bounce > 0:
                     self.bounce -= 1
         # Vertical movement
-        if self.y_speed != 0 and not moveRect(self, 0, self.y_speed,
-                                              *collideable):
+        if self.y_speed != 0 and not move_rect(self, 0, self.y_speed,
+                                               *collideable):
             if self.bounce == 0:
                 self.remove()
             else:
@@ -392,7 +390,7 @@ class Bullet(Rect):
 
 class EndGoal(Rect):
     def __init__(self, *args, **kwargs):
-        super(EndGoal, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
         self.color = WHITE
 
@@ -419,71 +417,71 @@ class EndGoal(Rect):
 
 class SpeedS(Rect):
     def __init__(self, *args, **kwargs):
-        super(SpeedS, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
-        SmallSpeed.append(self)
+        small_speed.append(self)
         self.color = LIGHT_GREEN
 
     def remove(self):
         not_player.remove(self)
-        SmallSpeed.remove(self)
+        small_speed.remove(self)
 
 class SpeedB(Rect):
     def __init__(self, *args, **kwargs):
-        super(SpeedB, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
-        BigSpeed.append(self)
+        big_speed.append(self)
         self.color = PURPLE
 
     def remove(self):
         not_player.remove(self)
-        BigSpeed.remove(self)
+        big_speed.remove(self)
 
 #End Event Class Blocks
 
 #Power Up Blocks
-def GetPowerup(x, y):
-    numUPs = 3
-    z = randint(1, numUPs)
-    if z == 1:
-        powerup = BuckShotUP((x, y), (40, 40))
-    if z == 2:
-        powerup = FireRateUP((x, y), (40, 40))
-    if z == 3:
-        powerup = Hp((x, y), (40, 40))
+def get_powerup(x, y):
+    num_ups = 3
+    powerup_choice = randint(1, num_ups)
+    if powerup_choice == 1:
+        BuckShotUP((x, y), (40, 40))
+    if powerup_choice == 2:
+        FireRateUP((x, y), (40, 40))
+    if powerup_choice == 3:
+        Hp((x, y), (40, 40))
 
 class BuckShotUP(Rect):
     def __init__(self, *args, **kwargs):
-        super(BuckShotUP, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
-        Buck.append(self)
+        buck.append(self)
         self.color = ORANGE
 
     def remove(self):
         not_player.remove(self)
-        Buck.remove(self)
+        buck.remove(self)
 
 class FireRateUP(Rect):
     def __init__(self, *args, **kwargs):
-        super(FireRateUP, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
-        Fire.append(self)
+        fire.append(self)
         self.color = LIGHT_YELLOW
 
     def remove(self):
         not_player.remove(self)
-        Fire.remove(self)
+        fire.remove(self)
 
 class Hp(Rect):
     def __init__(self, *args, **kwargs):
-        super(Hp, self).__init__(*args, **kwargs)
+        Rect.__init__(self, *args, **kwargs)
         not_player.append(self)
-        HealthBlock.append(self)
+        health_block.append(self)
         self.color = WHITE
 
     def remove(self):
         not_player.remove(self)
-        HealthBlock.remove(self)
+        health_block.remove(self)
 
 #End Power Up Blocks
 
@@ -506,94 +504,94 @@ class Room(object):
         self.checked = False
         (self.x, self.y) = position
         (self.w, self.h) = size
-        (self.N, self.S, self.E, self.W) = doors
+        (self.north, self.south, self.east, self.west) = doors
         self.floor_color = (randint(0, 255), randint(0, 255), randint(0, 255))
         self.wall_color = wall_color
         self.Floors = []
         self.Floors.append(Env((self.x, self.y), (self.w, self.h)))
-        self.Walls = []
-        self.Mobs = []
-        if self.N:
-            self.Walls.append(Wall(
+        self.walls = []
+        self.mobs = []
+        if self.north:
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y-wall_thickness),
                 (self.w * chunk+wall_thickness, wall_thickness)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+(chunk+gap)*self.w, self.y-wall_thickness),
                 (self.w * chunk+wall_thickness, wall_thickness)))
             self.Floors.append(MobGate(
                 (self.x+chunk*self.w - 1, self.y-wall_thickness),
                 (self.w*gap + 1, wall_thickness)))
         else:
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y-wall_thickness),
                 (self.w+2*wall_thickness, wall_thickness)))
-        if self.W:
-            self.Walls.append(Wall(
+        if self.west:
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y-wall_thickness),
                 (wall_thickness, self.h * chunk+wall_thickness)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y+(chunk+gap)*self.h),
                 (wall_thickness, self.h * chunk+wall_thickness)))
             self.Floors.append(MobGate(
                 (self.x-wall_thickness, self.y+chunk*self.h-1),
                 (wall_thickness, self.h * gap + 1)))
         else:
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y-wall_thickness),
                 (wall_thickness, self.h+2*wall_thickness)))
-        if self.S:
-            self.Walls.append(Wall(
+        if self.south:
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y+self.h),
                 (self.w * chunk+wall_thickness, wall_thickness)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+(chunk+gap)*self.w, self.y+self.h),
                 (self.w * chunk+wall_thickness, wall_thickness)))
             self.Floors.append(MobGate(
                 (self.x+chunk*self.w, self.y+self.h),
                 (self.w * gap, wall_thickness)))
         else:
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x-wall_thickness, self.y+self.h),
                 (self.w+2*wall_thickness, wall_thickness)))
-        if self.E:
-            self.Walls.append(Wall(
+        if self.east:
+            self.walls.append(Wall(
                 (self.x+self.w, self.y-wall_thickness),
                 (wall_thickness, self.h * chunk+wall_thickness)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w, self.y+(chunk+gap)*self.h),
                 (wall_thickness, self.h * chunk+wall_thickness)))
             self.Floors.append(MobGate(
                 (self.x+self.w, self.y+chunk*self.h),
                 (wall_thickness, self.h * gap)))
         else:
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w, self.y-wall_thickness),
                 (wall_thickness, self.h+2*wall_thickness)))
-        for wall in self.Walls:
+        for wall in self.walls:
             wall.color = wall_color
         for floor in self.Floors:
             if type(floor) != MobGate:
                 floor.color = floor_color
         self.center = self.Floors[0].center
 
-    def SetFloor(self, color):
-        self.floor_color = color
+    def set_floor(self, floor_color):
+        self.floor_color = floor_color
         for floor in self.Floors:
             if type(floor) != MobGate:
-                floor.color = color
+                floor.color = floor_color
 
-    def SetWall(self, color):
-        self.wall_color = color
-        for wall in self.Walls:
-            wall.color = color
+    def set_wall(self, wall_color):
+        self.wall_color = wall_color
+        for wall in self.walls:
+            wall.color = wall_color
 
     def remove(self):
         for floor in self.Floors:
             floor.remove()
-        for wall in self.Walls:
+        for wall in self.walls:
             wall.remove()
 
-    def GetCover(self):
+    def get_cover(self):
         covers = 5
         cover_model = randint(0, covers)
         if cover_model == 0:
@@ -601,94 +599,93 @@ class Room(object):
         elif cover_model == 1: # One box off-center
             randx = choice([.1, .6])
             randy = choice([.1, .6])
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*randx, self.y+self.h*randy),
                 (self.w*.3, self.h*.3)))
         elif cover_model == 2: # Three box center
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x + .1 * self.w, self.y + .1 * self.h),
                 (.3*self.w, .3*self.h)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x + .6 * self.w, self.y + .1 * self.h),
                 (.3*self.w, .3*self.h)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x + .35 * self.w, self.y + .6 * self.h),
                 (.3*self.w, .3*self.h)))
         elif cover_model == 3: # Four corner boxes
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x, self.y),
                 (self.w*self.chunk*.5, self.h*self.chunk*.5)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x, self.y),
                 (self.w*self.chunk*.5, self.h*self.chunk*.5)))
-            self.Walls[len(self.Walls)-1].topright = self.Floors[0].topright
-            self.Walls.append(Wall(
+            self.walls[len(self.walls)-1].topright = self.Floors[0].topright
+            self.walls.append(Wall(
                 (self.x, self.y),
                 (self.w*self.chunk*.5, self.h*self.chunk*.5)))
-            self.Walls[len(self.Walls)-1].bottomright \
+            self.walls[len(self.walls)-1].bottomright \
                 = self.Floors[0].bottomright
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x, self.y),
                 (self.w*self.chunk*.5, self.h*self.chunk*.5)))
-            self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
+            self.walls[len(self.walls)-1].bottomleft = self.Floors[0].bottomleft
         elif cover_model == 4: # 4 bar room
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.3, self.y+self.h*.35),
                 (self.w*.7, self.h*.03)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.0, self.y+self.h*.15),
                 (self.w*.7, self.h*.03)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.0, self.y+self.h*.65),
                 (self.w*.7, self.h*.03)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.3, self.y+self.h*.85),
                 (self.w*.7, self.h*.03)))
         elif cover_model == 5: # Two bars, two side boxes
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.25, self.y+self.h*.24),
                 (self.w*.5, self.h*.05)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.2, self.y+self.h*.45),
                 (self.w*.1, self.h*.1)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.7, self.y+self.h*.45),
                 (self.w*.1, self.h*.1)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.25, self.y+self.h*.74),
                 (self.w*.5, self.h*.05)))
 
-    def GetBossCover(self):
+    def get_boss_cover(self):
         covers = 4
         cover_model = randint(1, covers)
         cover_model = 2
         if cover_model == 0:
             return
         elif cover_model == 1: # One box center
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.4, self.y+self.h*.4),
                 (self.w*.2, self.h*.2)))
         elif cover_model == 2: # Half room
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.49, self.y + self.h*.35),
                 (self.w*.02, self.h*.3)))
-            event = SpeedS((self.x+self.w/4-30, self.y+self.h/2-30), (60, 60))
-            event = SpeedB((self.x+3*self.w/4-50, self.y+self.h/2-50),
-                           (100, 100))
+            SpeedS((self.x+self.w/4-30, self.y+self.h/2-30), (60, 60))
+            SpeedB((self.x+3*self.w/4-50, self.y+self.h/2-50), (100, 100))
         elif cover_model == 3: # Four corner boxes
-            self.Walls.append(Wall((self.x, self.y), (100, 100)))
-            self.Walls.append(Wall((self.x, self.y), (100, 100)))
-            self.Walls[len(self.Walls)-1].topright = self.Floors[0].topright
-            self.Walls.append(Wall((self.x, self.y), (100, 100)))
-            self.Walls[len(self.Walls)-1].bottomright \
+            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls[len(self.walls)-1].topright = self.Floors[0].topright
+            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls[len(self.walls)-1].bottomright \
                 = self.Floors[0].bottomright
-            self.Walls.append(Wall((self.x, self.y), (100, 100)))
-            self.Walls[len(self.Walls)-1].bottomleft = self.Floors[0].bottomleft
+            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls[len(self.walls)-1].bottomleft = self.Floors[0].bottomleft
         elif cover_model == 4: # Cross room
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.49, self.y + self.h*.35),
                 (self.w*.02, self.h*.3)))
-            self.Walls.append(Wall(
+            self.walls.append(Wall(
                 (self.x+self.w*.35, self.y + self.h*.49),
                 (self.w*.3, self.h*.02)))
 
@@ -699,23 +696,23 @@ class Room(object):
         else:
             mob_type = randint(1, num_mobs)
         ran = randint(0, 15)
-        self.Mobs.append(Mob(mob_type, (self.x+227, self.y+227),
+        self.mobs.append(Mob(mob_type, (self.x+227, self.y+227),
                              (30 + ran, 30 + ran), 1 + self.level/5))
 
-    def GetBoss(self, level):
-        self.Mobs.append(MobBoss((0, 0), (200, 200)))
-        self.Mobs[0].midright = self.Floors[0].midright
+    def get_boss(self, level):
+        self.mobs.append(MobBoss((0, 0), (200, 200)))
+        self.mobs[0].midright = self.Floors[0].midright
 
 
 class Board(object):
-    def __init__(self, rows, collumns, startX=0, startY=0, roomW=500, roomH=500,
-                 thick=20):
+    def __init__(self, rows, collumns, start_x=0, start_y=0,
+                 room_w=500, room_h=500, thick=20):
         self.rows = rows
         self.collumns = collumns
-        self.startX = startX
-        self.startY = startY
-        self.roomW = roomW
-        self.roomH = roomH
+        self.start_x = start_x
+        self.start_y = start_y
+        self.room_w = room_w
+        self.room_h = room_h
         self.thick = thick
         self.goal = None
         self.level = 0
@@ -726,73 +723,75 @@ class Board(object):
         global potential_end
         print "Generating new board"
         if self.level != 0 and self.level%5 == 4:
-            self.generateBoss()
+            self.generate_boss()
             return
         self.collumns += self.level/2
         self.rows += self.level/2
         rooms = []
         row = []
         events = []
-        N, S, E, W = False, False, False, False
-        room_layout = (N, S, E, W)
+        north, south, east, west = False, False, False, False
+        room_layout = (north, south, east, west)
         print "Making rooms"
         for i in range(0, self.collumns):
             for j in range(0, self.rows):
                 # Randomization
                 seed = randint(0, 2)
                 if seed == 0:
-                    E = True
-                    S = True
+                    east = True
+                    south = True
                 elif seed == 1:
-                    E = False
-                    S = True
+                    east = False
+                    south = True
                 elif seed == 2:
-                    E = True
-                    S = False
+                    east = True
+                    south = False
                 # Hallway anomaly
                 if self.collumns == 1:
-                    N = True
-                    S = True
+                    north = True
+                    south = True
                 if self.rows == 1:
-                    E = True
-                    W = True
+                    east = True
+                    west = True
                 # Sets the mandatory border walls
                 if i == 0:
-                    W = False
+                    west = False
                 if j == 0:
-                    N = False
+                    north = False
                 if i == self.collumns - 1:
-                    E = False
+                    east = False
                     # The following commented-out caveats are optional.
                     # They basically create an alley around the
                     # bottom-right to navigate around.
 
                     # if(j != self.rows - 1):
-                    #     S = True
+                    #     south = True
                 if j == self.rows - 1:
-                    S = False
+                    south = False
                     # if(i != self.rows - 1):
-                    #     E = True
+                    #     east = True
 
                 # Sets the dependent walls
                 if i - 1 >= 0:
-                    W = rooms[i-1][j].E
+                    west = rooms[i-1][j].east
                 if j - 1 >= 0:
-                    N = row[j-1].S
+                    north = row[j-1].south
 
                 # Ensures every room has an entrance
                 if j != 0:
-                    if N == False and S == False and E == False and W == False:
-                        E = True
+                    if north == False and south == False and east == False \
+                            and west == False:
+                        east = True
                 if i != self.collumns - 1:
-                    if N == False and S == False and E == False and W == False:
-                        S = True
+                    if north == False and south == False and east == False \
+                            and west == False:
+                        south = True
                 # Theory: No room will be unaccessable with this code.
-                room_layout = (N, S, E, W)
+                room_layout = (north, south, east, west)
                 row.append(Room(
-                    ((self.startX+(self.thick+self.roomW)*i),
-                     (self.startY+(self.thick+self.roomH)*j)),
-                    (self.roomW, self.roomH), room_layout,
+                    ((self.start_x+(self.thick+self.room_w)*i),
+                     (self.start_y+(self.thick+self.room_h)*j)),
+                    (self.room_w, self.room_h), room_layout,
                     floor_color=(60, 60, 60), wall_thickness=self.thick,
                     level=self.level))
 
@@ -818,7 +817,7 @@ class Board(object):
         for row in rooms:
             for room in row:
                 if room.level > 0 and room.checked == True:
-                    room.GetCover()
+                    room.get_cover()
                     print "Mob got."
                     room.get_mobs()
 
@@ -855,25 +854,25 @@ class Board(object):
         print "Generation complete"
 
     def wash_board(self):
-        del Fire[:]
-        del Buck[:]
-        del SmallSpeed[:]
-        del BigSpeed[:]
+        del fire[:]
+        del buck[:]
+        del small_speed[:]
+        del big_speed[:]
         del walls[:]
         del not_player[:]
         del self.rooms[:]
-        del Mobs[:]
+        del mobs[:]
         del bullets[:]
         del mob_gate[:]
 
-    def remake(self, rows, collumns, startX=0, startY=0, roomW=500, roomH=500,
-               thick=20, level_up=0):
+    def remake(self, rows, collumns, start_x=0, start_y=0,
+               room_w=500, room_h=500, thick=20, level_up=0):
         self.rows = rows
         self.collumns = collumns
-        self.startX = startX
-        self.startY = startY
-        self.roomW = roomW
-        self.roomH = roomH
+        self.start_x = start_x
+        self.start_y = start_y
+        self.room_w = room_w
+        self.room_h = room_h
         self.thick = thick
         self.goal = None
         self.generate()
@@ -882,25 +881,25 @@ class Board(object):
     def checker(self, x, y, flag=False):
         self.rooms[x][y].checked = True
         flag2 = True
-        if self.rooms[x][y].N:
+        if self.rooms[x][y].north:
             flag = True
             print "N" + str(x) + str(y)
             if self.rooms[x][y-1].checked == False:
                 flag2 = False
                 self.checker(x, y-1, True)
-        if self.rooms[x][y].S:
+        if self.rooms[x][y].south:
             flag = True
             print "S" + str(x) + str(y)
             if self.rooms[x][y+1].checked == False:
                 flag2 = False
                 self.checker(x, y+1, True)
-        if self.rooms[x][y].E:
+        if self.rooms[x][y].east:
             flag = True
             print "E" + str(x) + str(y)
             if self.rooms[x+1][y].checked == False:
                 flag2 = False
                 self.checker(x+1, y, True)
-        if self.rooms[x][y].W:
+        if self.rooms[x][y].west:
             flag = True
             print "W" + str(x) + str(y)
             if self.rooms[x-1][y].checked == False:
@@ -916,16 +915,16 @@ class Board(object):
             potential_end.append((x, y))
         return 0
 
-    def generateBoss(self):
+    def generate_boss(self):
         self.rooms = []
         row = []
         row.append(Room(
-            (self.startX, self.startY), (self.roomW*1.5, self.roomH*1),
+            (self.start_x, self.start_y), (self.room_w*1.5, self.room_h*1),
             (False, False, False, False), floor_color=BLOOD_RED,
             wall_color=OBSIDIAN, wall_thickness=self.thick*3, level=0))
         self.rooms.append(row)
-        self.rooms[0][0].GetBossCover()
-        self.rooms[0][0].GetBoss(self.level)
+        self.rooms[0][0].get_boss_cover()
+        self.rooms[0][0].get_boss(self.level)
 #End Class Definition
 
 def game_loop():
@@ -934,7 +933,7 @@ def game_loop():
     timer = 0
     # Rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they
     # are drawn in order declared.
-    player = Player((X_POS, Y_POS), (40, 40))
+    player = Player((START_X, START_Y), (40, 40))
     # Room generation:
     rows = randint(1, 4)
     collumns = randint(1, 4)
@@ -968,8 +967,8 @@ def game_loop():
                 terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == K_j:
-                    for mob in Mobs:
-                        mob.takeDmg(1)
+                    for mob in mobs:
+                        mob.take_damage(1)
                 if event.key == K_p:
                     while True:
                         text = SUBHEAD_FONT.render("Game Paused (p)", 1,
@@ -996,16 +995,16 @@ def game_loop():
 
         # Player movement
         if pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]:
-            if moveRect(player, 0, -speed, *walls):
+            if move_rect(player, 0, -speed, *walls):
                 camera.center = player.center
         if pygame.key.get_pressed()[K_DOWN] or pygame.key.get_pressed()[K_s]:
-            if moveRect(player, 0, speed, *walls):
+            if move_rect(player, 0, speed, *walls):
                 camera.center = player.center
         if pygame.key.get_pressed()[K_LEFT] or pygame.key.get_pressed()[K_a]:
-            if moveRect(player, -speed, 0, *walls):
+            if move_rect(player, -speed, 0, *walls):
                 camera.center = player.center
         if pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]:
-            if moveRect(player, speed, 0, *walls):
+            if move_rect(player, speed, 0, *walls):
                 camera.center = player.center
 
         # Player aiming and firing
@@ -1018,7 +1017,7 @@ def game_loop():
 
         # Goal generation
         if board.goal == None:
-            if len(Mobs) == 0:
+            if len(mobs) == 0:
                 board.goal = EndGoal(spawn, (40, 40))
         if board.goal != None:
             if player.colliderect(board.goal):
@@ -1027,12 +1026,12 @@ def game_loop():
                 rows = randint(1, 3)
                 collumns = randint(1, 3)
                 board.remake(rows, collumns, level_up=1)
-                player.x = X_POS
-                player.y = Y_POS
+                player.x = START_X
+                player.y = START_Y
                 camera.center = player.center
 
                 ##### mob movement && damage && such###
-        for mob in Mobs:
+        for mob in mobs:
             if mob.flash != 0:
                 mob.color = (128, 40, 40)
                 mob.flash -= 1
@@ -1097,33 +1096,33 @@ def game_loop():
                     bullet.remove()
             # Damage for bullets owned by the player
             else:
-                for mob in Mobs:
+                for mob in mobs:
                     if mob.colliderect(bullet):
-                        mob.takeDmg(bullet.power)
+                        mob.take_damage(bullet.power)
                         bullet.remove()
                         break
 
         # Event executions go here ***Read instructions before adding
         # an event located near the event class block***
-        for event in BigSpeed:
+        for event in big_speed:
             if player.colliderect(event):
                 speed = DEFAULT_SPEED+2
                 timer = 2 * FPS
-        for event in SmallSpeed:
+        for event in small_speed:
             if player.colliderect(event):
                 speed = DEFAULT_SPEED+1
                 timer = 1 * FPS
 
         # PowerUp executions go here
-        for powerup in Buck:
+        for powerup in buck:
             if player.colliderect(powerup):
                 player.shot_spread += 1
                 powerup.remove()
-        for powerup in Fire:
+        for powerup in fire:
             if player.colliderect(powerup):
                 player.fire_rate += .25/DEFAULT_SHOT_DELAY
                 powerup.remove()
-        for powerup in HealthBlock:
+        for powerup in health_block:
             if player.colliderect(powerup):
                 player.hpboost += 1
                 player.health = player.hpboost + DEFAULT_HP
@@ -1135,27 +1134,27 @@ def game_loop():
             obj.x -= camera.x
             obj.y -= camera.y
             if type(obj) is Bullet:
-                obj.realx -= camera.x
-                obj.realy -= camera.y
+                obj.real_x -= camera.x
+                obj.real_y -= camera.y
             if obj.colliderect(camera):
                 pygame.draw.rect(window, obj.color, obj)
-        for event in BigSpeed:
+        for event in big_speed:
             model = Rect((0, 0), (40, 40))
             model.center = event.center
             window.blit(LARGE_I, (model.x, model.y))
-        for event in SmallSpeed:
+        for event in small_speed:
             model = Rect((0, 0), (40, 40))
             model.center = event.center
             window.blit(SMALL_I, (model.x, model.y))
-        for powerup in Buck:
+        for powerup in buck:
             model = Rect((0, 0), (40, 40))
             model.center = powerup.center
             window.blit(BUCK_I, (model.x, model.y))
-        for powerup in Fire:
+        for powerup in fire:
             model = Rect((0, 0), (40, 40))
             model.center = powerup.center
             window.blit(RATE_I, (model.x, model.y))
-        for powerup in HealthBlock:
+        for powerup in health_block:
             model = Rect((0, 0), (40, 40))
             model.center = powerup.center
             window.blit(HP_I, (model.x, model.y))
@@ -1182,8 +1181,8 @@ def game_loop():
             obj.x += camera.x
             obj.y += camera.y
             if type(obj) is Bullet:
-                obj.realx += camera.x
-                obj.realy += camera.y
+                obj.real_x += camera.x
+                obj.real_y += camera.y
         player.x += camera.x
         player.y += camera.y
         pygame.display.flip()
