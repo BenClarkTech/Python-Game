@@ -1155,6 +1155,8 @@ def game_loop():
             model = Rect((0, 0), (40, 40))
             model.center = powerup.center
             window.blit(HP_I, (model.x, model.y))
+        for mob in mobs:
+            pygame.draw.rect(window, mob.color, mob)
         if board.goal != None:
             window.blit(FLAG_I, (board.goal.x, board.goal.y))
         player.x -= camera.x
