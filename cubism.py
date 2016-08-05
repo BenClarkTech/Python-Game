@@ -412,7 +412,7 @@ class EndGoal(Rect):
 # existing examples.
 #
 # Finally you must create the rule for those events. This is located in
-# the main loop. Emplement by adding a for loop over your array to check
+# the main loop. Implement by adding a for loop over your array to check
 # collisions with Player.
 
 class SpeedS(Rect):
@@ -705,10 +705,10 @@ class Room(object):
 
 
 class Board(object):
-    def __init__(self, rows, collumns, start_x=0, start_y=0,
+    def __init__(self, rows, columns, start_x=0, start_y=0,
                  room_w=500, room_h=500, thick=20):
         self.rows = rows
-        self.collumns = collumns
+        self.columns = columns
         self.start_x = start_x
         self.start_y = start_y
         self.room_w = room_w
@@ -725,7 +725,7 @@ class Board(object):
         if self.level != 0 and self.level%5 == 4:
             self.generate_boss()
             return
-        self.collumns += self.level/2
+        self.columns += self.level/2
         self.rows += self.level/2
         rooms = []
         row = []
@@ -733,7 +733,7 @@ class Board(object):
         north, south, east, west = False, False, False, False
         room_layout = (north, south, east, west)
         print "Making rooms"
-        for i in range(0, self.collumns):
+        for i in range(0, self.columns):
             for j in range(0, self.rows):
                 # Randomization
                 seed = randint(0, 2)
@@ -747,7 +747,7 @@ class Board(object):
                     east = True
                     south = False
                 # Hallway anomaly
-                if self.collumns == 1:
+                if self.columns == 1:
                     north = True
                     south = True
                 if self.rows == 1:
@@ -758,7 +758,7 @@ class Board(object):
                     west = False
                 if j == 0:
                     north = False
-                if i == self.collumns - 1:
+                if i == self.columns - 1:
                     east = False
                     # The following commented-out caveats are optional.
                     # They basically create an alley around the
@@ -782,7 +782,7 @@ class Board(object):
                     if north == False and south == False and east == False \
                             and west == False:
                         east = True
-                if i != self.collumns - 1:
+                if i != self.columns - 1:
                     if north == False and south == False and east == False \
                             and west == False:
                         south = True
@@ -865,10 +865,10 @@ class Board(object):
         del bullets[:]
         del mob_gate[:]
 
-    def remake(self, rows, collumns, start_x=0, start_y=0,
+    def remake(self, rows, columns, start_x=0, start_y=0,
                room_w=500, room_h=500, thick=20, level_up=0):
         self.rows = rows
-        self.collumns = collumns
+        self.columns = columns
         self.start_x = start_x
         self.start_y = start_y
         self.room_w = room_w
@@ -908,8 +908,8 @@ class Board(object):
         if not flag:
             self.wash_board()
             rows = randint(1, 4)
-            collumns = randint(1, 4)
-            self.remake(rows, collumns, level_up=0)
+            columns = randint(1, 4)
+            self.remake(rows, columns, level_up=0)
             return -1
         if flag2:
             potential_end.append((x, y))
@@ -936,8 +936,8 @@ def game_loop():
     player = Player((START_X, START_Y), (40, 40))
     # Room generation:
     rows = randint(1, 4)
-    collumns = randint(1, 4)
-    board = Board(rows, collumns)
+    columns = randint(1, 4)
+    board = Board(rows, columns)
     # Centers camera at start
     camera.center = player.center # Comment out to allow skewed camera
     count = 0
@@ -1021,8 +1021,8 @@ def game_loop():
                 # Create next board
                 board.wash_board()
                 rows = randint(1, 3)
-                collumns = randint(1, 3)
-                board.remake(rows, collumns, level_up=1)
+                columns = randint(1, 3)
+                board.remake(rows, columns, level_up=1)
                 player.x = START_X
                 player.y = START_Y
                 camera.center = player.center
