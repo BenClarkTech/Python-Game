@@ -1041,13 +1041,27 @@ def game_loop():
                 player.health -= 1
                 player.color = LIGHT_BLUE
                 player.damage_cd = 1 * 60
-            if mob.type == 2:
+                #fountain mob == type 2
+            """if mob.type == 2: 
                 mob.fire_angle += .05
                 if mob.fire_angle >= 2 * math.pi:
                     mob.fire_angle = 0
                 fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
                           mob.fire_angle, DEFAULT_BULLET_SPEED, 1, 0,
-                          mob.shot_spread, DEFAULT_SPREAD_ANGLE, "mob")
+                          mob.shot_spread, DEFAULT_SPREAD_ANGLE, "mob")"""
+            #new 2 type to reduce bullets
+            if mob.type == 2: 
+                if mob.shot_timer > 0:
+                    mob.shot_timer -= .1
+                if mob.shot_timer <= 0:
+                    mob.shot_timer = 1
+                    mob.fire_angle += .05
+                    if mob.fire_angle >= 2 * math.pi:
+                        mob.fire_angle = 0
+                    fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
+                        mob.fire_angle, DEFAULT_BULLET_SPEED, 1, 0,
+                        mob.shot_spread, DEFAULT_SPREAD_ANGLE, "mob")
+                
             if mob.type == 3:
                 if mob.shot_timer > 0:
                     mob.shot_timer -= .1
