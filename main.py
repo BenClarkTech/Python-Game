@@ -1,3 +1,6 @@
+import pygame_sdl2
+pygame_sdl2.import_as_pygame()
+
 import pygame
 import math
 import time
@@ -24,9 +27,10 @@ spawn = (0, 0)
 CAMERA_X = 0
 CAMERA_Y = 0
 
-WIN_X = 1200
-WIN_Y = 900
-    #Colors:
+WIN_X = 2560
+WIN_Y = 1440
+
+#Colors:
 RED = (230, 50, 50)
 PURPLE = (128, 0, 128)
 BLACK = (0, 0, 0)
@@ -64,12 +68,12 @@ RATE_I = pygame.image.load("FireRate.png")
 HP_I = pygame.image.load("HP.png")
 
 #font initialization:
-TITLE_FONT = pygame.font.Font(None, 288)
-SUBTITLE_FONT = pygame.font.Font(None, 220)
-HEADER_FONT = pygame.font.Font(None, 134)
-SUBHEAD_FONT = pygame.font.Font(None, 72)
-SUBHEAD2_FONT = pygame.font.Font(None, 58)
-BODY_FONT = pygame.font.Font(None, 36)
+TITLE_FONT = pygame.font.Font("SIXTY.TTF", 288)
+SUBTITLE_FONT = pygame.font.Font("SIXTY.TTF", 220)
+HEADER_FONT = pygame.font.Font("SIXTY.TTF", 134)
+SUBHEAD_FONT = pygame.font.Font("SIXTY.TTF", 72)
+SUBHEAD2_FONT = pygame.font.Font("SIXTY.TTF", 58)
+BODY_FONT = pygame.font.Font("SIXTY.TTF", 36)
 
 #Array Initialization
 mobs = []
@@ -942,7 +946,6 @@ def game_loop():
     camera.center = player.center # Comment out to allow skewed camera
     count = 0
 
-
     while True:
         clock.tick(FPS)
         if player.damage_cd != 0:
@@ -1006,6 +1009,9 @@ def game_loop():
 
         # Player aiming and firing
         if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
+            if move_rect(player, speed, 0, *walls):
+                camera.center = player.center                
+
             player.shot_timer = 1/player.fire_rate
             mouse_angle = get_angle(player.center, pygame.mouse.get_pos())
             fire_shot((player.centerx - 5, player.centery - 5), (10, 10),
@@ -1013,10 +1019,10 @@ def game_loop():
                       player.shot_spread, DEFAULT_SPREAD_ANGLE, "player")
 
         # Goal generation
-        if board.goal == None:
+        if board.goal:
             if len(mobs) == 0:
                 board.goal = EndGoal(spawn, (40, 40))
-        if board.goal != None:
+        else:
             if player.colliderect(board.goal):
                 # Create next board
                 board.wash_board()
@@ -1171,7 +1177,7 @@ def game_loop():
             window.blit(HP_I, (model.x, model.y))
         for mob in mobs:
             pygame.draw.rect(window, mob.color, mob)
-        if board.goal != None:
+        if board.goal:
             window.blit(FLAG_I, (board.goal.x, board.goal.y))
         player.x -= camera.x
         player.y -= camera.y
@@ -1209,6 +1215,7 @@ def main():
     title = pygame.image.load("TitleScreen.png")
     menu_value = 0
     flag = True
+
     while flag:
         play_color = CEMENT
         quit_color = CEMENT
