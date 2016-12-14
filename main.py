@@ -2,10 +2,10 @@ import pygame_sdl2
 pygame_sdl2.import_as_pygame()
 
 import pygame
+from pygame.locals import *
 import math
 import time
 import sys
-from pygame.locals import *
 from random import choice, randint
 
 #Initialize pygame
@@ -15,9 +15,9 @@ pygame.init()
     #Positions:
 START_X = 300#starting position if camera skewed
 START_Y = 280
-DEFAULT_SPEED = 4
+DEFAULT_SPEED = 8
 DEFAULT_HP = 3
-DEFAULT_BULLET_SPEED = 15
+DEFAULT_BULLET_SPEED = 30
 DEFAULT_SHOT_DELAY = 40.0
 DEFAULT_SPREAD_ANGLE = 0.1
 FPS = 60
@@ -29,6 +29,13 @@ CAMERA_Y = 0
 
 WIN_X = 2560
 WIN_Y = 1440
+
+# WIN_X = 1200
+# WIN_Y = 900
+
+#movement stuff
+circle_center = [.15 * WIN_X, .7 * WIN_Y]
+mov_vec = [0, 0]
 
 #Colors:
 RED = (230, 50, 50)
@@ -91,7 +98,7 @@ potential_end = []
 clock = pygame.time.Clock()
 
 window = pygame.display.set_mode([WIN_X, WIN_Y])
-camera = Rect((CAMERA_X, CAMERA_Y), (WIN_X, WIN_Y))
+camera = pygame.Rect((CAMERA_X, CAMERA_Y), (WIN_X, WIN_Y))
 
 #End Constand Definition
 #Begin Function Definition
@@ -448,11 +455,11 @@ def get_powerup(x, y):
     num_ups = 3
     powerup_choice = randint(1, num_ups)
     if powerup_choice == 1:
-        BuckShotUP((x, y), (40, 40))
+        BuckShotUP((x, y), (80, 80))
     if powerup_choice == 2:
-        FireRateUP((x, y), (40, 40))
+        FireRateUP((x, y), (80, 80))
     if powerup_choice == 3:
-        Hp((x, y), (40, 40))
+        Hp((x, y), (80, 80))
 
 class BuckShotUP(Rect):
     def __init__(self, *args, **kwargs):
@@ -674,16 +681,16 @@ class Room(object):
             self.walls.append(Wall(
                 (self.x+self.w*.49, self.y + self.h*.35),
                 (self.w*.02, self.h*.3)))
-            SpeedS((self.x+self.w/4-30, self.y+self.h/2-30), (60, 60))
-            SpeedB((self.x+3*self.w/4-50, self.y+self.h/2-50), (100, 100))
+            SpeedS((self.x+self.w/4-30, self.y+self.h/2-30), (120, 120))
+            SpeedB((self.x+3*self.w/4-50, self.y+self.h/2-50), (200, 200))
         elif cover_model == 3: # Four corner boxes
-            self.walls.append(Wall((self.x, self.y), (100, 100)))
-            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls.append(Wall((self.x, self.y), (200, 200)))
+            self.walls.append(Wall((self.x, self.y), (200, 200)))
             self.walls[len(self.walls)-1].topright = self.Floors[0].topright
-            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls.append(Wall((self.x, self.y), (200, 200)))
             self.walls[len(self.walls)-1].bottomright \
                 = self.Floors[0].bottomright
-            self.walls.append(Wall((self.x, self.y), (100, 100)))
+            self.walls.append(Wall((self.x, self.y), (200, 200)))
             self.walls[len(self.walls)-1].bottomleft = self.Floors[0].bottomleft
         elif cover_model == 4: # Cross room
             self.walls.append(Wall(
@@ -699,18 +706,18 @@ class Room(object):
             mob_type = (randint(0, self.level)+1)
         else:
             mob_type = randint(1, num_mobs)
-        ran = randint(0, 15)
-        self.mobs.append(Mob(mob_type, (self.x+227, self.y+227),
-                             (30 + ran, 30 + ran), 1 + self.level/5))
+        ran = randint(0, 30)
+        self.mobs.append(Mob(mob_type, (self.x+454, self.y+454),
+                             (60 + ran, 60 + ran), 1 + self.level/5))
 
     def get_boss(self, level):
-        self.mobs.append(MobBoss((0, 0), (200, 200)))
+        self.mobs.append(MobBoss((0, 0), (400, 400)))
         self.mobs[0].midright = self.Floors[0].midright
 
 
 class Board(object):
     def __init__(self, rows, columns, start_x=0, start_y=0,
-                 room_w=500, room_h=500, thick=20):
+                 room_w=1000, room_h=1000, thick=40):
         self.rows = rows
         self.columns = columns
         self.start_x = start_x
@@ -810,7 +817,7 @@ class Board(object):
         # Pick a room to set the endpoint in
         end_point = choice(potential_end)
         # Creates the end point
-        self.goal = EndGoal((0, 0), (40, 40))
+        self.goal = EndGoal((0, 0), (80, 80))
         print end_point # Debugging location of endpoint
         # Aligns end point to middle of room
         self.goal.center = rooms[end_point[0]][end_point[1]].Floors[0].center
@@ -837,7 +844,7 @@ class Board(object):
                         number_big = 1
                         x = randint(1, number_big)
                         if x == 1:
-                            events.append(SpeedB((0, 0), (100, 100)))
+                            events.append(SpeedB((0, 0), (200, 200)))
                             events[len(events)-1].center = room.center
                         # Add new big events here as elif blocks
                     elif randint(4, 4) == 4:
@@ -845,7 +852,7 @@ class Board(object):
                         number_small = 1
                         x = randint(1, number_small)
                         if x == 1:
-                            events.append(SpeedS((0, 0), (50, 50)))
+                            events.append(SpeedS((0, 0), (100, 100)))
                             events[len(events)-1].center = room.center
                         # Add new small events here as elif blocks
         print "Removing rooms"
@@ -870,7 +877,7 @@ class Board(object):
         del mob_gate[:]
 
     def remake(self, rows, columns, start_x=0, start_y=0,
-               room_w=500, room_h=500, thick=20, level_up=0):
+               room_w=1000, room_h=1000, thick=20, level_up=0):
         self.rows = rows
         self.columns = columns
         self.start_x = start_x
@@ -937,7 +944,7 @@ def game_loop():
     timer = 0
     # Rectangles below -- NOTE!!!! Order is currently IMPORTANT, as they
     # are drawn in order declared.
-    player = Player((START_X, START_Y), (40, 40))
+    player = Player((START_X, START_Y), (80, 80))
     # Room generation:
     rows = randint(1, 4)
     columns = randint(1, 4)
@@ -945,6 +952,9 @@ def game_loop():
     # Centers camera at start
     camera.center = player.center # Comment out to allow skewed camera
     count = 0
+	
+    moveid = None
+    mvcircle = None
 
     while True:
         clock.tick(FPS)
@@ -968,10 +978,35 @@ def game_loop():
         for event in pygame.event.get():
             if event.type == QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == K_p:
+            elif event.type == FINGERDOWN:
+                event.x *= WIN_X
+                event.y *= WIN_Y
+                if mvcircle and mvcircle.collidepoint((event.x, event.y)) and moveid == None:
+                    moveid = event.fingerId
+            elif event.type == FINGERUP and event.fingerId == moveid:
+                moveid = None
+                mov_vec[0] = 0
+                mov_vec[1] = 0
+            elif event.type == FINGERMOTION and mvcircle:
+                event.x *= WIN_X
+                event.y *= WIN_Y
+                if moveid == event.fingerId:
+                    mov_vec[0] = (event.x - circle_center[0]) / (.15 * WIN_Y)
+                    mov_vec[1] = (event.y - circle_center[1]) / (.15 * WIN_Y)
+                    if math.sqrt(sum([x ** 2 for x in mov_vec])) > 1:
+                        theta = math.atan2(mov_vec[1], mov_vec[0])
+                        mov_vec[0] = math.cos(theta)
+                        mov_vec[1] = math.sin(theta)
+                elif player.shot_timer <= 0 and moveid != event.fingerId:
+                    player.shot_timer = 1/player.fire_rate
+                    mouse_angle = get_angle(player.center, (event.x, event.y))
+                    fire_shot((player.centerx - 5, player.centery - 5), (20, 20),
+                              mouse_angle, DEFAULT_BULLET_SPEED, 1, 0,
+                              player.shot_spread, DEFAULT_SPREAD_ANGLE, "player")
+            elif event.type == KEYDOWN:
+                if event.key == K_p or event.key == K_AC_BACK:
                     while True:
-                        text = SUBHEAD_FONT.render("Game Paused (p)", 1,
+                        text = SUBHEAD_FONT.render("Game Paused (Hit back to resume)", 1,
                                                    (255, 140, 0))
                         textpos = text.get_rect()
                         textpos.center = camera.center
@@ -988,12 +1023,18 @@ def game_loop():
                         if event.type == QUIT:
                             terminate()
                         elif event.type == KEYDOWN:
-                            if event.key == K_p:
+                            if event.key == K_p or event.key == K_AC_BACK:
                                 break
                             if event.key == K_q:
                                 terminate()
 
-        # Player movement
+        # Player movement for android
+        if move_rect(player, mov_vec[0] * speed, 0, *walls):
+            camera.center = player.center
+        if move_rect(player, 0, mov_vec[1] * speed, *walls):
+            camera.center = player.center
+
+        # Player movement for pc
         if pygame.key.get_pressed()[K_UP] or pygame.key.get_pressed()[K_w]:
             if move_rect(player, 0, -speed, *walls):
                 camera.center = player.center
@@ -1006,22 +1047,11 @@ def game_loop():
         if pygame.key.get_pressed()[K_RIGHT] or pygame.key.get_pressed()[K_d]:
             if move_rect(player, speed, 0, *walls):
                 camera.center = player.center
-
-        # Player aiming and firing
-        if True in pygame.mouse.get_pressed() and player.shot_timer <= 0:
-            if move_rect(player, speed, 0, *walls):
-                camera.center = player.center                
-
-            player.shot_timer = 1/player.fire_rate
-            mouse_angle = get_angle(player.center, pygame.mouse.get_pos())
-            fire_shot((player.centerx - 5, player.centery - 5), (10, 10),
-                      mouse_angle, DEFAULT_BULLET_SPEED, 1, 0,
-                      player.shot_spread, DEFAULT_SPREAD_ANGLE, "player")
-
+		
         # Goal generation
-        if board.goal:
+        if not board.goal:
             if len(mobs) == 0:
-                board.goal = EndGoal(spawn, (40, 40))
+                board.goal = EndGoal(spawn, (80, 80))
         else:
             if player.colliderect(board.goal):
                 # Create next board
@@ -1061,10 +1091,10 @@ def game_loop():
                     mob.shot_timer -= .1
                 if mob.shot_timer <= 0:
                     mob.shot_timer = 1
-                    mob.fire_angle += .05
+                    mob.fire_angle += .4
                     if mob.fire_angle >= 2 * math.pi:
                         mob.fire_angle = 0
-                    fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
+                    fire_shot((mob.centerx - 5, mob.centery - 5), (20, 20),
                         mob.fire_angle, DEFAULT_BULLET_SPEED, 1, 0,
                         mob.shot_spread, DEFAULT_SPREAD_ANGLE, "mob")
                 
@@ -1075,7 +1105,7 @@ def game_loop():
                                            (player.centerx, player.centery))
                 if mob.shot_timer <= 0:
                     mob.shot_timer = 10
-                    fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
+                    fire_shot((mob.centerx- 5, mob.centery - 5), (20, 20),
                               mob.fire_angle, DEFAULT_BULLET_SPEED-6, 1, 2,
                               mob.shot_spread, DEFAULT_SPREAD_ANGLE, "mob")
 
@@ -1089,7 +1119,7 @@ def game_loop():
                 if mob.boss_timer %300 == 0: # Ring of death
                     mob.color = (50, 90, 30)
                     for i in range(0, 360, 20):
-                        fire_shot((mob.centerx - 5, mob.centery - 5), (10, 10),
+                        fire_shot((mob.centerx - 5, mob.centery - 5), (20, 20),
                           i, DEFAULT_BULLET_SPEED-12, 1, 0, mob.shot_spread,
                           DEFAULT_SPREAD_ANGLE, "mob")
 
@@ -1097,7 +1127,7 @@ def game_loop():
                     mob.color = (80, 00, 90)
                     mob.fire_angle = get_angle((mob.centerx, mob.centery),
                                                (player.centerx, player.centery))
-                    fire_shot((mob.centerx- 5, mob.centery - 5), (10, 10),
+                    fire_shot((mob.centerx- 5, mob.centery - 5), (20, 20),
                               mob.fire_angle, DEFAULT_BULLET_SPEED-10, 1, 5,
                               mob.shot_spread, DEFAULT_SPREAD_ANGLE, "mob")
 
@@ -1156,23 +1186,23 @@ def game_loop():
             if obj.colliderect(camera):
                 pygame.draw.rect(window, obj.color, obj)
         for event in big_speed:
-            model = Rect((0, 0), (40, 40))
+            model = Rect((0, 0), (80, 80))
             model.center = event.center
             window.blit(LARGE_I, (model.x, model.y))
         for event in small_speed:
-            model = Rect((0, 0), (40, 40))
+            model = Rect((0, 0), (80, 80))
             model.center = event.center
             window.blit(SMALL_I, (model.x, model.y))
         for powerup in buck:
-            model = Rect((0, 0), (40, 40))
+            model = Rect((0, 0), (80, 80))
             model.center = powerup.center
             window.blit(BUCK_I, (model.x, model.y))
         for powerup in fire:
-            model = Rect((0, 0), (40, 40))
+            model = Rect((0, 0), (80, 80))
             model.center = powerup.center
             window.blit(RATE_I, (model.x, model.y))
         for powerup in health_block:
-            model = Rect((0, 0), (40, 40))
+            model = Rect((0, 0), (80, 80))
             model.center = powerup.center
             window.blit(HP_I, (model.x, model.y))
         for mob in mobs:
@@ -1184,7 +1214,6 @@ def game_loop():
         camera.center = player.center
         pygame.draw.rect(window, player.color, player)
 
-
         # Paint text:
         text = SUBHEAD_FONT.render(str(board.level), 1, CEMENT)
         textpos = text.get_rect()
@@ -1194,6 +1223,7 @@ def game_loop():
         textpos = text.get_rect()
         textpos.topleft = camera.topleft
         window.blit(text, textpos)
+        mvcircle = pygame.draw.circle(window, CEMENT, [.15*WIN_X,.7*WIN_Y], .15 * WIN_Y, 5);
 
         # Scene reversion
         for obj in not_player:
@@ -1209,6 +1239,8 @@ def game_loop():
         if player.health == 0:
             board.wash_board()
             break
+
+
 
 def main():
     pygame.init()
@@ -1236,16 +1268,16 @@ def main():
         window.blit(quit_text, quit_rect)
         pygame.display.update()
         event = pygame.event.wait()
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
             terminate()
-        elif event.type == MOUSEMOTION:
+        elif event.type == pygame.MOUSEMOTION:
             if play_rect.collidepoint(event.pos):
                 menu_value = 1
             elif quit_rect.collidepoint(event.pos):
                 menu_value = 2
             else:
                 menu_value = 0
-        elif event.type == MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if play_rect.collidepoint(event.pos):
                 flag = False
             elif quit_rect.collidepoint(event.pos):
@@ -1257,19 +1289,22 @@ def main():
         textpos.center = camera.center
         textpos.y = textpos.y - 100
         window.blit(text, textpos)
-        text = SUBHEAD_FONT.render("Press R to try again.", 1, (255, 140, 0))
+        text = SUBHEAD_FONT.render("Press R to try again, or tap the screen.", 1, (255, 140, 0))
         textpos = text.get_rect()
         textpos.center = camera.center
         textpos.y = textpos.y + 50
         window.blit(text, textpos)
         pygame.display.update()
-
+        mov_vec[0] = 0
+        mov_vec[1] = 0
         pygame.event.clear()
         while True:
             event = pygame.event.wait()
             if event.type == QUIT:
                 terminate()
             elif event.type == KEYDOWN and event.key == K_r:
+                break
+            elif event.type == pygame.MOUSEBUTTONDOWN:
                 break
 
 if __name__ == "__main__":
